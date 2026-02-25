@@ -1,6 +1,21 @@
 const db = require('../db');
 const { sendWebhookNotification } = require('./notif');
 const crypto = require('crypto');
+const TRIAL_TIERS = ['Trial Pro', 'Trial Pro+'];
+
+/**
+ * Checks if a user has already used a trial.
+ * @param {string} userId 
+ * @returns {Promise<boolean>}
+ */
+async function hasUsedTrial(userId) {
+    if (!userId) return false;
+    const result = await db.query(
+        "SELECT id FROM applications WHERE parsed_user_id = $1 AND status = 'approved' AND parsed_tier LIKE 'Trial%'",
+        [userId]
+    );
+    return result.rows.length > 0;
+}
 
 /**
  * Saves or updates a license application.
@@ -79,14 +94,40 @@ async function saveApplication(appData) {
         });
 
         // Check for Auto-Approval rules
-        const ruleCheck = await checkAutoApproval(boothName, content, authorName);
-        if (ruleCheck) {
-            console.log(`[AppService] Auto-approval triggered for App ID: ${resultId}`);
-            await approveApplication(resultId, 'SYSTEM_AUTO', 'System (Auto)', true);
-            await db.query('UPDATE applications SET auto_processed = TRUE WHERE id = $1', [resultId]);
+        const isTrial = TRIAL_TIERS.includes(tier);
+        let autoRejected = false;
+        let autoProcessed = false;
+
+        if (isTrial) {
+            const alreadyUsed = await hasUsedTrial(userId);
+            if (alreadyUsed) {
+                console.log(`[AppService] Trial rejected (already used) for User: ${userId}`);
+                await db.query("UPDATE applications SET status = 'rejected' WHERE id = $1", [resultId]);
+
+                // Notify via webhook with specific reason
+                await sendWebhookNotification({
+                    title: '🚫 トライアル申請却下 (重複利用)',
+                    description: `**申請者:** ${authorName} (\`${authorId}\`)\n**内容:** トライアルは1回限りです。有料プランをご検討ください。\n\n[**管理画面で確認**](${dashboardUrl})`,
+                    color: 0xff0000
+                });
+                autoRejected = true;
+            } else {
+                console.log(`[AppService] Auto-approving trial for User: ${userId}`);
+                await approveApplication(resultId, 'SYSTEM_AUTO', 'System (Auto Trial)', true);
+                autoProcessed = true;
+            }
+        } else {
+            // Check for Auto-Approval rules for Pro/Pro+
+            const ruleCheck = await checkAutoApproval(boothName, content, authorName);
+            if (ruleCheck) {
+                console.log(`[AppService] Auto-approval triggered for App ID: ${resultId}`);
+                await approveApplication(resultId, 'SYSTEM_AUTO', 'System (Auto Rule)', true);
+                await db.query('UPDATE applications SET auto_processed = TRUE WHERE id = $1', [resultId]);
+                autoProcessed = true;
+            }
         }
 
-        return { success: true, id: resultId, auto_processed: !!ruleCheck };
+        return { success: true, id: resultId, auto_processed: autoProcessed, auto_rejected: autoRejected };
     } catch (err) {
         console.error('[AppService] Error saving application:', err);
         throw err;

@@ -208,6 +208,7 @@ async function initDB() {
       'idx_subscriptions_user_id ON subscriptions(user_id)',
       'idx_subscriptions_is_active ON subscriptions(is_active)',
       'idx_applications_status ON applications(status)',
+      'idx_applications_user_id ON applications(parsed_user_id)',
       'idx_operation_logs_created_at ON operation_logs(created_at DESC)'
     ];
     for (const idx of indexes) {

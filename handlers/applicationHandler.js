@@ -69,7 +69,7 @@ async function handleApplicationModal(interaction) {
     else if (tierRaw.toLowerCase() === 'trial pro+') tier = 'Trial Pro+';
 
     try {
-        await saveApplication({
+        const result = await saveApplication({
             messageId: `modal-${interaction.id}`,
             channelId: interaction.channel.id,
             authorId: interaction.user.id,
@@ -82,8 +82,15 @@ async function handleApplicationModal(interaction) {
             sourceType: 'modal'
         });
 
+        let replyMsg = '✅ **申請を受け付けました！**\n内容を精査し、不備がなければライセンスを発行いたします。';
+        if (result.auto_processed) {
+            replyMsg = '⚡ **トライアルを自動発行しました！**\nライセンスキーをWebhookで送信しましたので、ご確認ください。';
+        } else if (result.auto_rejected) {
+            replyMsg = '⚠️ **トライアルは既に利用済みです**\nトライアルは1回限りの提供となっております。引き続きご利用いただく場合は、有料プランをご検討ください。';
+        }
+
         await interaction.editReply({
-            content: '✅ **申請を受け付けました！**\n内容を精査し、不備がなければライセンスを発行いたします。'
+            content: replyMsg
         });
     } catch (err) {
         console.error('[App] Modal Save Error:', err);
