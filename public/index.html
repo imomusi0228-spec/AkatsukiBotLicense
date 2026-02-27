@@ -208,7 +208,8 @@
                                     <span class="badge" :class="{
                                         'badge-tier-pro': sub.tier === 'Pro',
                                         'badge-tier-pro-plus': sub.tier === 'Pro+',
-                                        'badge-tier-trial': sub.tier.includes('Trial'),
+                                        'badge-tier-trial-pro-plus': sub.tier.includes('Trial') && sub.tier.includes('Pro+'),
+                                        'badge-tier-trial-pro': sub.tier.includes('Trial') && !sub.tier.includes('Pro+'),
                                         'badge-tier-ultimate': sub.tier === 'ULTIMATE',
                                         'bg-secondary': !sub.is_active
                                     }">
