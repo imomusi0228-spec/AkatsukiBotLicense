@@ -145,7 +145,6 @@ function startCron(client) {
             }
         } catch (err) { console.error('[Cron] Monthly Report Error:', err); }
     });
-});
 }
 
 module.exports = { startCron };
