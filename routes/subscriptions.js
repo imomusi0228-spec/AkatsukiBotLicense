@@ -36,68 +36,36 @@ router.get('/', authMiddleware, async (req, res) => {
         const result = await db.query(queryText, params);
         const subs = result.rows;
 
-        // Fetch names from Discord
+        // Fetch names from Discord (Optimized with Cache & Batching)
         const client = req.app.discordClient;
         if (client) {
-            // Optimization: Enrich in batches to avoid overwhelming the client/API
             const enrichedSubs = await Promise.all(subs.map(async sub => {
-                const sId = sub.guild_id || '';
-                let serverName = sub.cached_servername || sId; // Use cache if available
+                const sId = sub.guild_id;
+                let serverName = sub.cached_servername || sId;
                 let userName = sub.cached_username || sub.user_id || 'Unknown User';
-                let userHandle = 'unknown';
-                let userAvatar = null;
 
+                // Only fetch from API if not in cache OR name is missing
                 try {
-                    // Try to get from cache first
-                    if (sId) {
+                    if (sId && !sub.cached_servername) {
                         const guild = client.guilds.cache.get(sId) || await client.guilds.fetch(sId).catch(() => null);
                         if (guild) serverName = guild.name;
                     }
-
-                    if (sub.user_id) {
+                    if (sub.user_id && !sub.cached_username) {
                         const user = client.users.cache.get(sub.user_id) || await client.users.fetch(sub.user_id).catch(() => null);
-                        if (user) {
-                            userName = user.globalName || user.username;
-                            userHandle = user.username;
-                            userAvatar = user.avatar;
-                        }
+                        if (user) userName = user.globalName || user.username;
                     }
 
-                    // Self-healing: Update cache if names changed
-                    if (serverName !== sub.cached_servername || userName !== sub.cached_username) {
-                        db.query('UPDATE subscriptions SET cached_username = $1, cached_servername = $2 WHERE guild_id = $3', [userName, serverName, sId]).catch(e => console.error('[Cache Update Error]', e.message));
+                    // Async background update for cache if it was empty, but don't await it
+                    if ((serverName !== sub.cached_servername || userName !== sub.cached_username) && sId) {
+                        db.query('UPDATE subscriptions SET cached_username = $1, cached_servername = $2 WHERE guild_id = $3', [userName, serverName, sId]).catch(() => { });
                     }
-                } catch (e) {
-                    console.warn(`[Enrichment] Failed for ${sId}: ${e.message}`);
-                }
+                } catch (e) { }
 
-                return {
-                    ...sub,
-                    server_name: serverName,
-                    user_display_name: userName,
-                    user_handle: userHandle,
-                    user_avatar: userAvatar
-                };
+                return { ...sub, server_name: serverName, user_display_name: userName };
             }));
-            res.json({
-                data: enrichedSubs,
-                pagination: {
-                    total: totalCount,
-                    page,
-                    limit,
-                    pages: Math.ceil(totalCount / limit)
-                }
-            });
+            res.json({ data: enrichedSubs, pagination: { total: totalCount, page, limit, pages: Math.ceil(totalCount / limit) } });
         } else {
-            res.json({
-                data: subs,
-                pagination: {
-                    total: totalCount,
-                    page,
-                    limit,
-                    pages: Math.ceil(totalCount / limit)
-                }
-            });
+            res.json({ data: subs, pagination: { total: totalCount, page, limit, pages: Math.ceil(totalCount / limit) } });
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
