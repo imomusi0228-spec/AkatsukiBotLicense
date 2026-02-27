@@ -76,9 +76,14 @@ async function updateMemberRoles(guild, userId, tier) {
 /**
  * Syncs subscriptions based on roles in the support server.
  * @param {Client} client 
+ * @param {string} [targetUserId] - Optional user ID to sync only one member
  */
-async function syncSubscriptions(client) {
-    console.log('Starting subscription sync...');
+async function syncSubscriptions(client, targetUserId = null) {
+    if (targetUserId) {
+        console.log(`Starting individual subscription sync for user ${targetUserId}...`);
+    } else {
+        console.log('Starting global subscription sync...');
+    }
     const ROLES = await getDynamicRoles();
 
     const guild = await client.guilds.fetch(SUPPORT_GUILD_ID).catch(console.error);
@@ -91,10 +96,15 @@ async function syncSubscriptions(client) {
     let members;
     try {
         const roleIds = Object.values(ROLES).filter(id => id);
-        if (roleIds.length === 0) {
-            members = await guild.members.fetch(); // Fallback if no roles defined
+        if (targetUserId) {
+            // Individual sync: only fetch and check the target user
+            const member = await guild.members.fetch({ user: targetUserId, force: true }).catch(() => null);
+            members = new Map();
+            if (member && roleIds.some(rId => member.roles.cache.has(rId))) {
+                members.set(member.id, member);
+            }
         } else {
-            // Fetch only users who have at least one subscription role
+            // Global sync: fetch only users who have at least one subscription role
             members = await guild.members.fetch({ force: true });
             members = members.filter(m => roleIds.some(rId => m.roles.cache.has(rId)));
         }

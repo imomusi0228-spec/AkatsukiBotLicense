@@ -3,8 +3,7 @@ const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('disc
 const adminCommands = [
     new SlashCommandBuilder()
         .setName('sync')
-        .setDescription('サブスクリプションとロールを手動で同期します')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+        .setDescription('サブスクリプションとロールを最新の状態に同期します'),
     new SlashCommandBuilder()
         .setName('apply')
         .setDescription('ライセンス申請パネルを設置します')
@@ -25,7 +24,10 @@ const publicCommands = [
             option.setName('key').setDescription('ライセンスキーまたはBooth注文番号').setRequired(false)),
     new SlashCommandBuilder()
         .setName('portal')
-        .setDescription('購入者向けセルフポータルのリンクを表示します')
+        .setDescription('購入者向けセルフポータルのリンクを表示します'),
+    new SlashCommandBuilder()
+        .setName('sync')
+        .setDescription('あなたのステータスを同期します（管理者の場合は全体同期）')
 ];
 
 const commands = [...adminCommands, ...publicCommands];
@@ -129,7 +131,8 @@ async function handleInteraction(interaction) {
     if (!interaction.isChatInputCommand()) return;
 
     // Admin commands authorization check
-    const isAdminCommand = adminCommands.some(cmd => cmd.name === interaction.commandName);
+    const adminActionCommands = ['apply', 'move', 'setup_vc']; // list explicitly
+    const isAdminCommand = adminActionCommands.includes(interaction.commandName);
     if (isAdminCommand) {
         const allowedIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(id => id.trim());
         const isExplicitAdmin = allowedIds.includes(interaction.user.id);
