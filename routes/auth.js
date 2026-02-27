@@ -107,15 +107,35 @@ router.get('/callback', async (req, res) => {
 
     const USER_AGENT = 'DiscordBot (https://github.com/imomusi0228-spec/AkatsukiBot-, 1.0.0)';
 
+    const fetchWithRetry = async (url, options, retries = 3, delay = 2000) => {
+        for (let i = 0; i < retries; i++) {
+            try {
+                return await axios(url, options);
+            } catch (err) {
+                const isRateLimit = err.response?.status === 429 ||
+                    (err.response?.status === 403 && typeof err.response?.data === 'string' && err.response?.data.includes('1015'));
+                if (isRateLimit && i < retries - 1) {
+                    console.warn(`[OAuth] Rate limit hit. Retrying in ${delay}ms... (Attempt ${i + 1}/${retries})`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // Exponential backoff
+                    continue;
+                }
+                throw err;
+            }
+        }
+    };
+
     try {
-        const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', new URLSearchParams({
-            client_id: DISCORD_CLIENT_ID,
-            client_secret: DISCORD_CLIENT_SECRET,
-            code,
-            grant_type: 'authorization_code',
-            redirect_uri: REDIRECT_URI,
-            scope: 'identify guilds'
-        }), {
+        const tokenResponse = await fetchWithRetry('https://discord.com/api/oauth2/token', {
+            method: 'POST',
+            data: new URLSearchParams({
+                client_id: DISCORD_CLIENT_ID,
+                client_secret: DISCORD_CLIENT_SECRET,
+                code,
+                grant_type: 'authorization_code',
+                redirect_uri: REDIRECT_URI,
+                scope: 'identify guilds'
+            }),
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'User-Agent': USER_AGENT
@@ -123,7 +143,7 @@ router.get('/callback', async (req, res) => {
         });
 
         const { access_token } = tokenResponse.data;
-        const userResponse = await axios.get('https://discord.com/api/users/@me', {
+        const userResponse = await fetchWithRetry('https://discord.com/api/users/@me', {
             headers: {
                 Authorization: `Bearer ${access_token}`,
                 'User-Agent': USER_AGENT

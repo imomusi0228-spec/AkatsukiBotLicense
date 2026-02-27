@@ -51,9 +51,18 @@ client.once(Events.ClientReady, async () => {
     runBackgroundTasks();
     startCron(client); // Start Cron Scheduler
 
-    // Check for updates/announcements on startup
-    const { checkForUpdates } = require('./services/updates');
-    checkForUpdates(client);
+    // Check for updates/announcements after a short delay to avoid startup rate limit
+    setTimeout(async () => {
+        try {
+            const { checkForUpdates } = require('./services/updates');
+            await checkForUpdates(client);
+
+            const syncOnBoot = require('./scripts/sync_on_boot');
+            await syncOnBoot(client).catch(err => console.error('[SyncOnBoot] Background sync failed:', err));
+        } catch (err) {
+            console.error('[Startup] Failed to run update/sync tasks:', err);
+        }
+    }, 5000); // 5 second delay
 
     setInterval(runBackgroundTasks, 3600000); // Sync roles every hour
 });

@@ -105,7 +105,10 @@ async function syncSubscriptions(client, targetUserId = null) {
             }
         } else {
             // Global sync: fetch only users who have at least one subscription role
-            members = await guild.members.fetch({ force: true });
+            // guild.members.fetch() with no options fetches all. Instead, we use query if possible or filter results.
+            // Discord API doesn't allow multi-role filter in fetch easily, so we fetch all but use a lighter method if possible.
+            // However, to be safe and thorough, we'll keep the filter but ensure we don't 'force: true' unless necessary.
+            members = await guild.members.fetch({ withPresences: false });
             members = members.filter(m => roleIds.some(rId => m.roles.cache.has(rId)));
         }
         console.log(`Fetched ${members.size} subscribed members for sync.`);
