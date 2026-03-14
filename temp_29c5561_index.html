@@ -1,0 +1,280 @@
+﻿<!DOCTYPE html>
+<html lang="ja" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AkatsukiBot | 邂｡逅・さ繝ｳ繧ｽ繝ｼ繝ｫ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+
+<div id="app" v-cloak>
+    <!-- Loading State -->
+    <div v-if="loading && (user || isAdminLogged)" class="d-flex justify-content-center align-items-center vh-100">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <!-- Login Screen -->
+    <div v-if="!user && !isAdminLogged" class="container vh-100 d-flex flex-column justify-content-center align-items-center">
+        <div class="panel p-5 text-center" style="max-width: 400px; width: 100%;">
+            <h2 class="mb-4">AkatsukiBot<br><span class="fs-6 text-muted">Management Console</span></h2>
+            
+            <a href="/api/auth/login" class="btn btn-primary btn-lg w-100 mb-3 d-flex align-items-center justify-content-center">
+                <svg class="me-2" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.65 0c-.109-.256-.265-.583-.406-.833a.054.054 0 0 0-.052-.025c-1.108.284-2.19.622-3.257 1.011a.053.053 0 0 0-.011.027c-2.156 3.208-2.748 6.326-2.748 6.347a.054.054 0 0 0 .02.043c1.3.947 2.535 1.523 3.693 1.832a.053.053 0 0 0 .048-.02c.307-.425.576-.875.8-1.343a.053.053 0 0 0-.022-.054 8.167 8.167 0 0 1-1.277-.611.054.054 0 0 0-.005-.084 6.746 6.746 0 0 1 .253-.189.053.053 0 0 0 .052.007c2.628 1.203 5.467 1.203 8.05 0a.054.054 0 0 0 .053-.007c.083.064.168.129.253.189a.053.053 0 0 0-.005.084 8.162 8.162 0 0 1-1.277.611.054.054 0 0 0-.022.054c.224.473.497.923.805 1.343a.053.053 0 0 0 .047.02c1.158-.309 2.393-.88 3.693-1.827a.054.054 0 0 0 .02-.043c0-.021-.592-3.139-2.748-6.347a.05.05 0 0 0-.011-.027ZM5.32 9.074c-.79 0-1.433-.728-1.433-1.618 0-.885.633-1.618 1.433-1.618.8 0 1.443.733 1.443 1.618.005.89-.638 1.618-1.443 1.618Zm5.352 0c-.79 0-1.438-.728-1.438-1.618 0-.885.638-1.618 1.438-1.618.805 0 1.443.733 1.443 1.618.005.89-.638 1.618-1.443 1.618Z"/></svg>
+                Discord Login
+            </a>
+            
+            <div class="input-group">
+                <input type="password" id="tokenInput" class="form-control" placeholder="Admin Token (Local)">
+                <button class="btn btn-outline-secondary" @click="loginWithToken">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div v-else class="container-fluid py-4">
+        <header class="d-flex justify-content-between align-items-center mb-4 px-3">
+            <h3 class="m-0 fw-bold">Dashboard</h3>
+            <div class="d-flex align-items-center">
+                <div v-if="user" class="me-3 d-flex align-items-center bg-dark rounded px-3 py-2">
+                    <img :src="'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=32'" class="rounded-circle me-2" alt="">
+                    <span>{{ user.username }}</span>
+                </div>
+                <button class="btn btn-outline-danger btn-sm" @click="logout">繝ｭ繧ｰ繧｢繧ｦ繝・/button>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="row g-3 mb-4 px-3">
+            <div class="col-md-3">
+                <div class="panel stat-card text-center">
+                    <div class="stat-value text-accent">{{ stats.active_count }}</div>
+                    <div class="stat-label">譛牙柑繝ｩ繧､繧ｻ繝ｳ繧ｹ</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel stat-card text-center">
+                    <div class="stat-value text-warning">{{ stats.expiring_soon_count }}</div>
+                    <div class="stat-label">7譌･莉･蜀・↓螟ｱ蜉ｹ</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel stat-card text-center">
+                    <div class="stat-value text-success">{{ stats.new_this_month }}</div>
+                    <div class="stat-label">莉頑怦縺ｮ譁ｰ隕・/div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel stat-card text-center">
+                    <div class="stat-value text-info">{{ stats.renewed_this_month }}</div>
+                    <div class="stat-label">莉頑怦縺ｮ譖ｴ譁ｰ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <button class="nav-link" :class="{ active: activeTab === 'dashboard' }" @click="activeTab = 'dashboard'">繝ｩ繧､繧ｻ繝ｳ繧ｹ荳隕ｧ</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" :class="{ active: activeTab === 'apps' }" @click="activeTab = 'apps'">逕ｳ隲狗ｮ｡逅・/button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" :class="{ active: activeTab === 'logs' }" @click="activeTab = 'logs'">謫堺ｽ懊Ο繧ｰ</button>
+                </li>
+            </ul>
+            
+            <div v-if="activeTab === 'dashboard'" class="d-flex gap-2">
+                <input type="text" id="searchInput" class="form-control form-control-sm" style="width: 250px;" 
+                       v-model="searchQuery" placeholder="讀懃ｴ｢ (Ctrl+K)">
+                
+                <select class="form-select form-select-sm" style="width: 150px;" v-model="filterStatus">
+                    <option value="all">縺吶∋縺ｦ</option>
+                    <option value="active">譛牙柑縺ｮ縺ｿ</option>
+                    <option value="expired">譛滄剞蛻・ｌ</option>
+                    <option value="expiring">譛滄剞髢楢ｿ・/option>
+                </select>
+
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">譁ｰ隕丈ｽ懈・</button>
+            </div>
+        </div>
+
+        <!-- Tab Content: Dashboard (Subscriptions) -->
+        <div v-if="activeTab === 'dashboard'" class="px-3">
+            <div class="panel p-0 overflow-hidden">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>譛牙柑</th>
+                            <th>繧ｵ繝ｼ繝舌・</th>
+                            <th>繝ｦ繝ｼ繧ｶ繝ｼ</th>
+                            <th>Tier</th>
+                            <th>譛滄剞</th>
+                            <th class="text-end">繧｢繧ｯ繧ｷ繝ｧ繝ｳ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="sub in filteredSubscriptions" :key="sub.server_id">
+                            <td>
+                                <span class="badge" :class="sub.is_active ? 'bg-success' : 'bg-danger'">
+                                    {{ sub.is_active ? 'ACTIVE' : 'INACTIVE' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-bold">{{ sub.server_name || 'Unknown' }}</div>
+                                <code class="text-muted small">{{ sub.server_id }}</code>
+                            </td>
+                            <td>
+                                <div>{{ sub.user_display_name }}</div>
+                                <div class="text-muted small">@{{ sub.user_handle }}</div>
+                            </td>
+                            <td><span class="badge bg-secondary">{{ sub.plan_tier }}</span></td>
+                            <td>
+                                <div :class="{'text-warning': new Date(sub.expiry_date) < new Date(Date.now() + 7*86400000)}">
+                                    {{ formatDate(sub.expiry_date) }}
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-light me-1" @click="extendSub(sub.server_id, 30)" title="+30譌･">+30d</button>
+                                <button class="btn btn-sm btn-outline-light me-1" @click="openEditModal(sub)">邱ｨ髮・/button>
+                                <button class="btn btn-sm btn-outline-danger" @click="deactivateSub(sub.server_id)">蛛懈ｭ｢</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Content: Applications -->
+        <div v-if="activeTab === 'apps'" class="px-3">
+            <div class="d-flex justify-content-end mb-2">
+                <button class="btn btn-sm btn-secondary" @click="loadData">譖ｴ譁ｰ</button>
+            </div>
+            <div class="panel p-0 overflow-hidden">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>譌･譎・/th>
+                            <th>Discord User</th>
+                            <th>BOOTH蜷・/ 蟶梧悍</th>
+                            <th>迥ｶ諷・/th>
+                            <th class="text-end">謫堺ｽ・/th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="app in applications" :key="app.id">
+                            <td>{{ new Date(app.created_at).toLocaleString('ja-JP') }}</td>
+                            <td>{{ app.author_name }}<br><small class="text-muted">{{ app.author_id }}</small></td>
+                            <td>
+                                <div class="fw-bold">{{ app.parsed_booth_name || 'N/A' }}</div>
+                                <span class="badge bg-dark border">{{ app.parsed_tier }}</span>
+                            </td>
+                            <td>
+                                <span class="badge" :class="{
+                                    'bg-success': app.status === 'approved',
+                                    'bg-warning': app.status === 'pending',
+                                    'bg-danger': app.status === 'rejected'
+                                }">{{ app.status }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div v-if="app.status === 'pending'">
+                                    <button class="btn btn-sm btn-success me-1" @click="approveApp(app)">謇ｿ隱・/button>
+                                    <button class="btn btn-sm btn-danger" @click="deleteApp(app.id)">諡貞凄</button>
+                                </div>
+                                <div v-else>
+                                    <button class="btn btn-sm btn-outline-danger" @click="deleteApp(app.id)">蜑企勁</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Content: Logs -->
+        <div v-if="activeTab === 'logs'" class="px-3">
+            <div class="panel p-0 overflow-hidden">
+                 <table class="table table-dark table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Operator</th>
+                            <th>Action</th>
+                            <th>Target</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="log in logs" :key="log.id">
+                             <td><small>{{ new Date(log.created_at).toLocaleString() }}</small></td>
+                             <td>{{ log.operator_name }}</td>
+                             <td><span class="badge bg-secondary">{{ log.action_type }}</span></td>
+                             <td><code class="small">{{ log.target_id }}</code></td>
+                             <td>{{ log.details }}</td>
+                        </tr>
+                    </tbody>
+                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">隧ｳ邏ｰ邱ｨ髮・ {{ editModal.data.server_id }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label">繝励Λ繝ｳ</label>
+                        <div class="input-group">
+                            <select v-model="editModal.data.plan_tier" class="form-select">
+                                <option value="Pro">Pro</option>
+                                <option value="Pro+">Pro+</option>
+                            </select>
+                            <button class="btn btn-outline-primary" @click="updateTier">螟画峩菫晏ｭ・/button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">譛滄俣蟒ｶ髟ｷ (譛・</label>
+                        <div class="input-group">
+                             <input type="number" v-model="editModal.extendDuration" class="form-control" min="1">
+                             <button class="btn btn-success" @click="saveEdit">蟒ｶ髟ｷ螳溯｡・/button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Modal -->
+    <div class="modal fade" id="keyModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">License Key Issued</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="display-6 user-select-all">{{ keyModal.key }}</p>
+                    <p class="text-muted">{{ keyModal.tier }} License</p>
+                    <button class="btn btn-primary" @click="copyText(keyModal.key)">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

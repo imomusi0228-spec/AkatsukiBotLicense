@@ -100,6 +100,16 @@
             box-shadow: 0 0 10px currentColor;
         }
 
+        @keyframes pulse-success {
+            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(122, 162, 247, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(122, 162, 247, 0); }
+            100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(122, 162, 247, 0); }
+        }
+
+        .online-pulse {
+            animation: pulse-success 2s infinite;
+        }
+
         .bg-dark-soft {
             background: rgba(255, 255, 255, 0.05);
         }
@@ -158,8 +168,9 @@
                             <span class="fw-bold ms-1" style="font-size: 0.9rem;">{{ systemStatus.system.memory.percent }}</span>
                         </div>
                         <div class="monitor-item d-flex align-items-center">
-                            <div class="status-dot-mini me-2" :class="systemStatus.bot.status === 'online' ? 'bg-success' : 'bg-danger'"></div>
-                            <span class="fw-bold" style="font-size: 0.9rem;">{{ systemStatus.bot.latency }}ms</span>
+                            <div class="status-dot-mini me-2" :class="systemStatus.bot.status === 'online' ? 'bg-accent online-pulse' : 'bg-danger'"></div>
+                            <span class="fw-bold me-1 text-accent" style="font-size: 0.8rem; letter-spacing: 0.05em;">{{ systemStatus.bot.status.toUpperCase() }}</span>
+                            <span class="text-muted extra-small ms-1" style="font-size: 0.75rem;">{{ systemStatus.bot.latency }}ms</span>
                         </div>
                     </div>
                 </div>
