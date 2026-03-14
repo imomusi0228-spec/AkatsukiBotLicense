@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AkatsukiBot | 管理コンソール</title>
+    <title>AkatsukiBot | 邂｡逅・さ繝ｳ繧ｽ繝ｼ繝ｫ</title>
     <link href="lib/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
@@ -62,51 +62,6 @@
         .animate-fade-in {
             animation: fadeIn 0.5s ease forwards;
         }
-
-        /* Header System Monitor Styles */
-        .header-glass {
-            background: rgba(20, 20, 25, 0.6);
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            margin: -24px -24px 24px -24px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .header-title {
-            background: linear-gradient(135deg, #fff 0%, #7aa2f7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-        }
-
-        .system-monitor-mini {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 4px 16px;
-            border-radius: 100px;
-        }
-
-        .monitor-item {
-            display: flex;
-            align-items: center;
-            white-space: nowrap;
-        }
-
-        .status-dot-mini {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            box-shadow: 0 0 10px currentColor;
-        }
-
-        .bg-dark-soft {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .border-soft {
-            border-color: rgba(255, 255, 255, 0.1) !important;
-        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
@@ -142,34 +97,17 @@
 
         <!-- Main Dashboard -->
         <div v-else class="container-fluid py-4">
-            <header class="d-flex justify-content-between align-items-center mb-4 px-3 header-glass py-3">
-                <div class="d-flex align-items-center gap-4">
-                    <h3 class="m-0 fw-bold header-title">AkatsukiBot Dashboard</h3>
-                    
-                    <div class="d-flex align-items-center gap-3 system-monitor-mini border-start border-secondary ps-4">
-                        <div class="monitor-item">
-                            <i class="bi bi-cpu text-accent me-1"></i>
-                            <span class="text-muted extra-small">CPU</span>
-                            <span class="fw-bold ms-1" style="font-size: 0.9rem;">{{ systemStatus.system.load }}</span>
-                        </div>
-                        <div class="monitor-item">
-                            <i class="bi bi-memory text-warning me-1"></i>
-                            <span class="text-muted extra-small">RAM</span>
-                            <span class="fw-bold ms-1" style="font-size: 0.9rem;">{{ systemStatus.system.memory.percent }}</span>
-                        </div>
-                        <div class="monitor-item d-flex align-items-center">
-                            <div class="status-dot-mini me-2" :class="systemStatus.bot.status === 'online' ? 'bg-success' : 'bg-danger'"></div>
-                            <span class="fw-bold" style="font-size: 0.9rem;">{{ systemStatus.bot.latency }}ms</span>
-                        </div>
-                    </div>
+            <header class="d-flex justify-content-between align-items-center mb-4 px-3">
+                <div class="d-flex align-items-center">
+                    <h3 class="m-0 fw-bold">AkatsukiBot Dashboard</h3>
                 </div>
                 <div class="d-flex align-items-center">
-                    <div v-if="user" class="me-3 d-flex align-items-center bg-dark-soft rounded-pill px-3 py-1 border border-soft">
+                    <div v-if="user" class="me-3 d-flex align-items-center bg-dark rounded px-3 py-2">
                         <img :src="'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=32'"
-                            class="rounded-circle me-2" alt="" width="24" height="24">
-                        <span class="small">{{ user.username }}</span>
+                            class="rounded-circle me-2" alt="">
+                        <span>{{ user.username }}</span>
                     </div>
-                    <button class="btn btn-outline-danger btn-sm rounded-pill" @click="logout">ログアウト</button>
+                    <button class="btn btn-outline-danger btn-sm" @click="logout">繝ｭ繧ｰ繧｢繧ｦ繝・/button>
                 </div>
             </header>
 
@@ -178,25 +116,25 @@
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
                         <div class="stat-value">{{ stats.paid_count }}<span class="text-muted" style="font-size:1.2rem;"> / {{ stats.total_count }}</span></div>
-                        <div class="stat-label">有料 / 全ライセンス数</div>
+                        <div class="stat-label">譛画侭 / 蜈ｨ繝ｩ繧､繧ｻ繝ｳ繧ｹ謨ｰ</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
                         <div class="stat-value text-warning">{{ stats.expiring_soon_count }}</div>
-                        <div class="stat-label">7日以内に失効</div>
+                        <div class="stat-label">7譌･莉･蜀・↓螟ｱ蜉ｹ</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
                         <div class="stat-value text-success">{{ stats.new_this_month }}</div>
-                        <div class="stat-label">今月の新規</div>
+                        <div class="stat-label">莉頑怦縺ｮ譁ｰ隕・/div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
                         <div class="stat-value text-info">{{ stats.renewed_this_month }}</div>
-                        <div class="stat-label">今月の更新</div>
+                        <div class="stat-label">莉頑怦縺ｮ譖ｴ譁ｰ</div>
                     </div>
                 </div>
             </div>
@@ -206,66 +144,70 @@
                 <ul class="nav nav-pills">
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'dashboard' }"
-                            @click="activeTab = 'dashboard'">ライセンス一覧</button>
+                            @click="activeTab = 'dashboard'">繝ｩ繧､繧ｻ繝ｳ繧ｹ荳隕ｧ</button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'apps' }"
-                            @click="activeTab = 'apps'">申請管理</button>
+                            @click="activeTab = 'apps'">逕ｳ隲狗ｮ｡逅・/button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'stats' }"
-                            @click="activeTab = 'stats'">分析</button>
+                            @click="activeTab = 'stats'">蛻・梵</button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'logs' }"
-                            @click="activeTab = 'logs'; loadLogs(1)">監査ログ</button>
+                            @click="activeTab = 'logs'; loadLogs(1)">逶｣譟ｻ繝ｭ繧ｰ</button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'settings' }"
-                            @click="activeTab = 'settings'">設定</button>
+                            @click="activeTab = 'settings'">險ｭ螳・/button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'announce' }"
-                            @click="activeTab = 'announce'">告知作成</button>
+                            @click="activeTab = 'announce'">蜻顔衍菴懈・</button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'blacklist' }"
-                            @click="activeTab = 'blacklist'">ブラックリスト</button>
+                            @click="activeTab = 'blacklist'">繝悶Λ繝・け繝ｪ繧ｹ繝・/button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" :class="{ active: activeTab === 'system' }"
+                            @click="activeTab = 'system'; loadSystemStatus()">繧ｷ繧ｹ繝・Β</button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" :class="{ active: activeTab === 'import' }"
-                            @click="activeTab = 'import'">インポート</button>
+                            @click="activeTab = 'import'">繧､繝ｳ繝昴・繝・/button>
                     </li>
 
                 </ul>
 
                 <div v-if="activeTab === 'dashboard'" class="d-flex gap-2">
                     <div v-if="selectedSubs.length > 0" class="me-3 d-flex align-items-center">
-                        <span class="badge bg-primary me-2">{{ selectedSubs.length }}件選択中</span>
+                        <span class="badge bg-primary me-2">{{ selectedSubs.length }}莉ｶ驕ｸ謚樔ｸｭ</span>
                         <button v-if="currentUserRole === 'admin'" class="btn btn-sm btn-outline-danger me-1"
-                            @click="bulkDeactivate">一括停止</button>
-                        <button class="btn btn-sm btn-outline-secondary" @click="selectedSubs = []">解除</button>
+                            @click="bulkDeactivate">荳諡ｬ蛛懈ｭ｢</button>
+                        <button class="btn btn-sm btn-outline-secondary" @click="selectedSubs = []">隗｣髯､</button>
                     </div>
 
                     <div class="input-group input-group-sm" style="width: 300px;">
                         <input type="text" id="searchInput" class="form-control" v-model="searchQuery"
-                            placeholder="検索 (Enterで検索, Ctrl+K)" @keyup.enter="search">
-                        <button class="btn btn-outline-secondary" @click="search">検索</button>
+                            placeholder="讀懃ｴ｢ (Enter縺ｧ讀懃ｴ｢, Ctrl+K)" @keyup.enter="search">
+                        <button class="btn btn-outline-secondary" @click="search">讀懃ｴ｢</button>
                     </div>
 
                     <select class="form-select form-select-sm" style="width: 150px;" v-model="filterStatus">
-                        <option value="all">すべて</option>
-                        <option value="active">有効のみ</option>
-                        <option value="expired">期限切れ</option>
-                        <option value="expiring">期限間近</option>
+                        <option value="all">縺吶∋縺ｦ</option>
+                        <option value="active">譛牙柑縺ｮ縺ｿ</option>
+                        <option value="expired">譛滄剞蛻・ｌ</option>
+                        <option value="expiring">譛滄剞髢楢ｿ・/option>
                     </select>
 
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" @click="exportData('csv')" title="CSVで書き出し">
+                        <button class="btn btn-sm btn-outline-primary" @click="exportData('csv')" title="CSV縺ｧ譖ｸ縺榊・縺・>
                             <i class="bi bi-download"></i> CSV
                         </button>
                         <button v-if="currentUserRole === 'admin'" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#addModal">新規作成</button>
+                            data-bs-target="#addModal">譁ｰ隕丈ｽ懈・</button>
                     </div>
                 </div>
             </div>
@@ -277,13 +219,13 @@
                         <thead>
                             <tr>
                                 <th style="width: 40px;"><input type="checkbox" @change="toggleSelectAll($event)"></th>
-                                <th>有効</th>
-                                <th>サーバー</th>
-                                <th>ユーザー</th>
+                                <th>譛牙柑</th>
+                                <th>繧ｵ繝ｼ繝舌・</th>
+                                <th>繝ｦ繝ｼ繧ｶ繝ｼ</th>
                                 <th>Tier</th>
-                                <th class="text-center">更新</th>
-                                <th>期限</th>
-                                <th class="text-end">アクション</th>
+                                <th class="text-center">譖ｴ譁ｰ</th>
+                                <th>譛滄剞</th>
+                                <th class="text-end">繧｢繧ｯ繧ｷ繝ｧ繝ｳ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -326,7 +268,7 @@
                                 <td class="text-center">
                                     <button class="btn btn-sm p-1"
                                         :class="sub.auto_renew ? 'text-success' : 'text-muted'"
-                                        @click="toggleAutoRenew(sub)" :title="sub.auto_renew ? '自動更新有効' : '自動更新無効'">
+                                        @click="toggleAutoRenew(sub)" :title="sub.auto_renew ? '閾ｪ蜍墓峩譁ｰ譛牙柑' : '閾ｪ蜍墓峩譁ｰ辟｡蜉ｹ'">
                                         <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                                             <path fill-rule="evenodd"
                                                 d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
@@ -343,16 +285,16 @@
                                 </td>
                                 <td v-if="currentUserRole === 'admin'" class="text-end">
                                     <button class="btn btn-sm btn-outline-light me-1"
-                                        @click="openEditModal(sub)">編集</button>
+                                        @click="openEditModal(sub)">邱ｨ髮・/button>
                                     <button v-if="sub.is_active" class="btn btn-sm btn-outline-warning me-1"
-                                        @click="deactivateSub(sub)">停止</button>
+                                        @click="deactivateSub(sub)">蛛懈ｭ｢</button>
                                     <button v-else class="btn btn-sm btn-outline-success me-1"
-                                        @click="resumeSub(sub)">再開</button>
+                                        @click="resumeSub(sub)">蜀埼幕</button>
                                     <button class="btn btn-sm btn-outline-danger"
-                                        @click="hardDeleteSub(sub)">削除</button>
+                                        @click="hardDeleteSub(sub)">蜑企勁</button>
                                 </td>
                                 <td v-else class="text-end text-muted small">
-                                    閲覧のみ可能
+                                    髢ｲ隕ｧ縺ｮ縺ｿ蜿ｯ閭ｽ
                                 </td>
                             </tr>
                         </tbody>
@@ -363,14 +305,14 @@
                 <nav v-if="subPagination.pages > 1" class="mt-3">
                     <ul class="pagination pagination-sm justify-content-center">
                         <li class="page-item" :class="{ disabled: subPagination.page === 1 }">
-                            <button class="page-link" @click="changePage('sub', subPagination.page - 1)">前へ</button>
+                            <button class="page-link" @click="changePage('sub', subPagination.page - 1)">蜑阪∈</button>
                         </li>
                         <li v-for="p in subPagination.pages" :key="p" class="page-item"
                             :class="{ active: subPagination.page === p }">
                             <button class="page-link" @click="changePage('sub', p)">{{ p }}</button>
                         </li>
                         <li class="page-item" :class="{ disabled: subPagination.page === subPagination.pages }">
-                            <button class="page-link" @click="changePage('sub', subPagination.page + 1)">次へ</button>
+                            <button class="page-link" @click="changePage('sub', subPagination.page + 1)">谺｡縺ｸ</button>
                         </li>
                     </ul>
                 </nav>
@@ -379,17 +321,17 @@
             <!-- Tab Content: Applications -->
             <div v-if="activeTab === 'apps'" class="px-3">
                 <div class="d-flex justify-content-end mb-2">
-                    <button class="btn btn-sm btn-secondary" @click="loadData">更新</button>
+                    <button class="btn btn-sm btn-secondary" @click="loadData">譖ｴ譁ｰ</button>
                 </div>
                 <div class="panel p-0 overflow-hidden">
                     <table class="table table-dark table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>日時</th>
+                                <th>譌･譎・/th>
                                 <th>Discord User</th>
-                                <th>BOOTH名 / 希望</th>
-                                <th>状態</th>
-                                <th class="text-end">操作</th>
+                                <th>BOOTH蜷・/ 蟶梧悍</th>
+                                <th>迥ｶ諷・/th>
+                                <th class="text-end">謫堺ｽ・/th>
                             </tr>
                         </thead>
                         <tbody>
@@ -411,7 +353,7 @@
                                 <td>
                                     <div class="fw-bold text-decoration-underline cursor-pointer text-primary"
                                         @click="openAppDetails(app)" role="button">
-                                        {{ app.parsed_booth_name || '（名称不明 - クリックで全文表示）' }}
+                                        {{ app.parsed_booth_name || '・亥錐遘ｰ荳肴・ - 繧ｯ繝ｪ繝・け縺ｧ蜈ｨ譁・｡ｨ遉ｺ・・ }}
                                     </div>
                                     <span class="badge" :class="{
                                     'badge-tier-trial-pro': app.parsed_tier === 'Trial Pro',
@@ -444,7 +386,7 @@
                                                 <path
                                                     d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
                                             </svg>
-                                            発行済み
+                                            逋ｺ陦梧ｸ医∩
                                         </div>
                                         <div v-else class="text-danger small mt-1">
                                             <svg width="12" height="12" fill="currentColor" class="me-1"
@@ -452,7 +394,7 @@
                                                 <path
                                                     d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
                                             </svg>
-                                            使用済み
+                                            菴ｿ逕ｨ貂医∩
                                         </div>
                                     </div>
                                     <span v-else class="badge" :class="{
@@ -461,22 +403,22 @@
                                     'bg-info': app.status === 'on_hold',
                                     'bg-secondary': app.status === 'cancelled'
                                 }">
-                                        {{ app.status === 'pending' ? '承認待ち' : (app.status === 'rejected' ? '却下' :
-                                        (app.status === 'on_hold' ? '保留中' : app.status)) }}
+                                        {{ app.status === 'pending' ? '謇ｿ隱榊ｾ・■' : (app.status === 'rejected' ? '蜊ｴ荳・ :
+                                        (app.status === 'on_hold' ? '菫晉蕗荳ｭ' : app.status)) }}
                                     </span>
                                 </td>
                                 <td class="text-end">
                                     <div v-if="app.status === 'pending' || app.status === 'on_hold'"
                                         class="d-flex gap-1 justify-content-end">
-                                        <button class="btn btn-sm btn-success" @click="approveApp(app)">承認</button>
+                                        <button class="btn btn-sm btn-success" @click="approveApp(app)">謇ｿ隱・/button>
                                         <button v-if="app.status === 'pending'" class="btn btn-sm btn-warning"
-                                            @click="holdApplication(app.id)">保留</button>
+                                            @click="holdApplication(app.id)">菫晉蕗</button>
                                         <button v-if="currentUserRole === 'admin'" class="btn btn-sm btn-danger"
-                                            @click="rejectApplication(app.id)">却下</button>
+                                            @click="rejectApplication(app.id)">蜊ｴ荳・/button>
                                     </div>
                                     <div v-else class="d-flex gap-1 justify-content-end">
                                         <button v-if="currentUserRole === 'admin'" class="btn btn-sm btn-outline-danger"
-                                            @click="deleteApp(app.id)">削除</button>
+                                            @click="deleteApp(app.id)">蜑企勁</button>
                                     </div>
                                 </td>
                             </tr>
@@ -488,14 +430,14 @@
                 <nav v-if="appPagination.pages > 1" class="mt-3">
                     <ul class="pagination pagination-sm justify-content-center">
                         <li class="page-item" :class="{ disabled: appPagination.page === 1 }">
-                            <button class="page-link" @click="changePage('app', appPagination.page - 1)">前へ</button>
+                            <button class="page-link" @click="changePage('app', appPagination.page - 1)">蜑阪∈</button>
                         </li>
                         <li v-for="p in appPagination.pages" :key="p" class="page-item"
                             :class="{ active: appPagination.page === p }">
                             <button class="page-link" @click="changePage('app', p)">{{ p }}</button>
                         </li>
                         <li class="page-item" :class="{ disabled: appPagination.page === appPagination.pages }">
-                            <button class="page-link" @click="changePage('app', appPagination.page + 1)">次へ</button>
+                            <button class="page-link" @click="changePage('app', appPagination.page + 1)">谺｡縺ｸ</button>
                         </li>
                     </ul>
                 </nav>
@@ -507,9 +449,9 @@
                     <!-- Paid Tier Distribution -->
                     <div class="col-md-4">
                         <div class="panel h-100 shadow-sm border-0 bg-opacity-10">
-                            <h5 class="mb-4 text-accent"><i class="bi bi-award me-2"></i>本契約 Tier分布</h5>
+                            <h5 class="mb-4 text-accent"><i class="bi bi-award me-2"></i>譛ｬ螂醍ｴ・Tier蛻・ｸ・/h5>
                             <div v-if="Object.keys(detailedStats.tier_distribution.paid).length === 0"
-                                class="text-muted small">データなし</div>
+                                class="text-muted small">繝・・繧ｿ縺ｪ縺・/div>
                             <div v-for="(count, tier) in detailedStats.tier_distribution.paid" :key="tier"
                                 class="d-flex align-items-center mb-3">
                                 <span class="tier-bar-label fw-bold">{{ tier }}</span>
@@ -527,9 +469,9 @@
                     <!-- Trial Tier Distribution -->
                     <div class="col-md-4">
                         <div class="panel h-100 shadow-sm border-0 bg-opacity-10">
-                            <h5 class="mb-4 text-info"><i class="bi bi-vignette me-2"></i>トライアル Tier分布</h5>
+                            <h5 class="mb-4 text-info"><i class="bi bi-vignette me-2"></i>繝医Λ繧､繧｢繝ｫ Tier蛻・ｸ・/h5>
                             <div v-if="Object.keys(detailedStats.tier_distribution.trial).length === 0"
-                                class="text-muted small">データなし</div>
+                                class="text-muted small">繝・・繧ｿ縺ｪ縺・/div>
                             <div v-for="(count, tier) in detailedStats.tier_distribution.trial" :key="tier"
                                 class="d-flex align-items-center mb-3">
                                 <span class="tier-bar-label fw-bold">{{ tier }}</span>
@@ -548,12 +490,12 @@
                     <div class="col-md-4">
                         <div class="panel h-100 text-center d-flex flex-column justify-content-center cursor-pointer hover-bright glass-panel"
                             @click="showOverallPie" style="cursor: pointer;">
-                            <h5 class="mb-2">継続率 (Retention) <i class="bi bi-info-circle small text-muted"></i></h5>
+                            <h5 class="mb-2">邯咏ｶ夂紫 (Retention) <i class="bi bi-info-circle small text-muted"></i></h5>
                             <div class="stat-value text-accent glow-text" style="font-size: 3.5rem;">{{
                                 detailedStats.retention_rate }}%</div>
                             <div class="text-muted small">
-                                有料プラン（Pro/Pro+）を対象とした割合<br>
-                                <span class="badge border border-muted mt-2">クリックで全分布を表示</span>
+                                譛画侭繝励Λ繝ｳ・・ro/Pro+・峨ｒ蟇ｾ雎｡縺ｨ縺励◆蜑ｲ蜷・br>
+                                <span class="badge border border-muted mt-2">繧ｯ繝ｪ繝・け縺ｧ蜈ｨ蛻・ｸ・ｒ陦ｨ遉ｺ</span>
                             </div>
                         </div>
                     </div>
@@ -561,7 +503,7 @@
                     <!-- Growth Chart -->
                     <div class="col-md-8 mt-4">
                         <div class="panel shadow-sm border-0 bg-opacity-10">
-                            <h5 class="mb-4">月別新規契約推移 (有料プランのみ)</h5>
+                            <h5 class="mb-4">譛亥挨譁ｰ隕丞･醍ｴ・耳遘ｻ (譛画侭繝励Λ繝ｳ縺ｮ縺ｿ)</h5>
                             <div style="height: 300px;">
                                 <canvas id="growthChart"></canvas>
                             </div>
@@ -571,13 +513,13 @@
                     <!-- Top Commands -->
                     <div class="col-md-4 mt-4">
                         <div class="panel h-100 shadow-sm border-0 bg-opacity-10">
-                            <h5 class="mb-4 text-accent"><i class="bi bi-terminal me-2"></i>人気コマンド (過去30日)</h5>
-                            <div v-if="detailedStats.top_commands.length === 0" class="text-muted small">データなし</div>
+                            <h5 class="mb-4 text-accent"><i class="bi bi-terminal me-2"></i>莠ｺ豌励さ繝槭Φ繝・(驕主悉30譌･)</h5>
+                            <div v-if="detailedStats.top_commands.length === 0" class="text-muted small">繝・・繧ｿ縺ｪ縺・/div>
                             <div v-for="cmd in detailedStats.top_commands" :key="cmd.command_name"
                                 class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="badge bg-dark border border-secondary font-monospace">/{{ cmd.command_name
                                     }}</span>
-                                <span class="fw-bold">{{ cmd.count }} 回</span>
+                                <span class="fw-bold">{{ cmd.count }} 蝗・/span>
                             </div>
                         </div>
                     </div>
@@ -585,7 +527,7 @@
                     <!-- Heatmap placeholder -->
                     <div class="col-md-4 mt-4">
                         <div class="panel h-100 shadow-sm border-0 bg-opacity-10">
-                            <h5 class="mb-4 text-warning"><i class="bi bi-grid-3x3-gap me-2"></i>アクティビティヒートマップ</h5>
+                            <h5 class="mb-4 text-warning"><i class="bi bi-grid-3x3-gap me-2"></i>繧｢繧ｯ繝・ぅ繝薙ユ繧｣繝偵・繝医・繝・・</h5>
                             <div class="d-flex flex-column align-items-center justify-content-center h-100 pb-5">
                                 <div id="vcHeatmap" class="d-flex flex-wrap gap-1" style="width: 210px;">
                                     <div v-for="day in detailedStats.heatmap_data" :key="day.date" class="rounded-1 heatmap-box"
@@ -596,7 +538,7 @@
                                             border: day.count > 0 ? '1px solid rgba(255,255,255,0.2)' : 'none'
                                          }" :title="day.date + ': ' + day.count + ' activities'"></div>
                                 </div>
-                                <div class="mt-3 small text-muted">過去28日間の操作アクティビティ</div>
+                                <div class="mt-3 small text-muted">驕主悉28譌･髢薙・謫堺ｽ懊い繧ｯ繝・ぅ繝薙ユ繧｣</div>
                             </div>
                         </div>
                     </div>
@@ -608,7 +550,7 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">全利用Tier分布</h5>
+                            <h5 class="modal-title">蜈ｨ蛻ｩ逕ｨTier蛻・ｸ・/h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body p-4">
@@ -623,20 +565,20 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-3">
                         <select class="form-select form-select-sm" v-model="logFilter.action" @change="loadLogs(1)">
-                            <option value="">すべてのアクション</option>
-                            <option value="CREATE">新規作成</option>
-                            <option value="EXTEND">期限延長</option>
-                            <option value="UPDATE_TIER">Tier変更</option>
-                            <option value="TOGGLE_ACTIVE">有効/停止切替</option>
-                            <option value="DEACTIVATE">停止</option>
-                            <option value="DELETE">削除</option>
-                            <option value="APPROVE_APP">申請承認</option>
-                            <option value="REJECT_APP">申請却下</option>
-                            <option value="CANCEL_APP">申請キャンセル</option>
+                            <option value="">縺吶∋縺ｦ縺ｮ繧｢繧ｯ繧ｷ繝ｧ繝ｳ</option>
+                            <option value="CREATE">譁ｰ隕丈ｽ懈・</option>
+                            <option value="EXTEND">譛滄剞蟒ｶ髟ｷ</option>
+                            <option value="UPDATE_TIER">Tier螟画峩</option>
+                            <option value="TOGGLE_ACTIVE">譛牙柑/蛛懈ｭ｢蛻・崛</option>
+                            <option value="DEACTIVATE">蛛懈ｭ｢</option>
+                            <option value="DELETE">蜑企勁</option>
+                            <option value="APPROVE_APP">逕ｳ隲区価隱・/option>
+                            <option value="REJECT_APP">逕ｳ隲句唆荳・/option>
+                            <option value="CANCEL_APP">逕ｳ隲九く繝｣繝ｳ繧ｻ繝ｫ</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <input type="text" class="form-control form-control-sm" placeholder="ID/名前で検索..."
+                        <input type="text" class="form-control form-control-sm" placeholder="ID/蜷榊燕縺ｧ讀懃ｴ｢..."
                             v-model="logFilter.search" @keyup.enter="loadLogs(1)">
                     </div>
                 </div>
@@ -645,11 +587,11 @@
                     <table class="table table-dark table-hover table-sm mb-0">
                         <thead>
                             <tr>
-                                <th class="ps-3">日時</th>
-                                <th>操作者</th>
-                                <th>アクション</th>
-                                <th>対象</th>
-                                <th>内容</th>
+                                <th class="ps-3">譌･譎・/th>
+                                <th>謫堺ｽ懆・/th>
+                                <th>繧｢繧ｯ繧ｷ繝ｧ繝ｳ</th>
+                                <th>蟇ｾ雎｡</th>
+                                <th>蜀・ｮｹ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -674,7 +616,7 @@
                                 <td><small>{{ translateDetails(log.details) }}</small></td>
                             </tr>
                             <tr v-if="auditLogs.length === 0">
-                                <td colspan="5" class="text-center py-4 text-muted">ログが見つかりません</td>
+                                <td colspan="5" class="text-center py-4 text-muted">繝ｭ繧ｰ縺瑚ｦ九▽縺九ｊ縺ｾ縺帙ｓ</td>
                             </tr>
                         </tbody>
                     </table>
@@ -684,14 +626,14 @@
                 <nav v-if="logPagination.pages > 1" class="mt-3">
                     <ul class="pagination pagination-sm justify-content-center">
                         <li class="page-item" :class="{ disabled: logPagination.page === 1 }">
-                            <button class="page-link" @click="loadLogs(logPagination.page - 1)">前へ</button>
+                            <button class="page-link" @click="loadLogs(logPagination.page - 1)">蜑阪∈</button>
                         </li>
                         <li v-for="p in logPagination.pages" :key="p" class="page-item"
                             :class="{ active: logPagination.page === p }">
                             <button class="page-link" @click="loadLogs(p)">{{ p }}</button>
                         </li>
                         <li class="page-item" :class="{ disabled: logPagination.page === logPagination.pages }">
-                            <button class="page-link" @click="loadLogs(logPagination.page + 1)">次へ</button>
+                            <button class="page-link" @click="loadLogs(logPagination.page + 1)">谺｡縺ｸ</button>
                         </li>
                     </ul>
                 </nav>
@@ -701,9 +643,9 @@
             <div v-if="activeTab === 'blacklist'" class="px-3 animate__animated animate__fadeIn">
                 <div class="panel p-4 glass-panel">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="m-0"><i class="bi bi-person-x me-2"></i>ブラックリスト管理</h4>
+                        <h4 class="m-0"><i class="bi bi-person-x me-2"></i>繝悶Λ繝・け繝ｪ繧ｹ繝育ｮ｡逅・/h4>
                         <button class="btn btn-danger btn-glow" @click="openBlacklistModal">
-                            <i class="bi bi-plus-lg me-1"></i> 手動追加
+                            <i class="bi bi-plus-lg me-1"></i> 謇句虚霑ｽ蜉
                         </button>
                     </div>
 
@@ -728,14 +670,13 @@
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-outline-success"
                                             @click="removeFromBlacklist(bl.target_id)">
-                                            <i class="bi bi-unlock me-1"></i> 解除
+                                            <i class="bi bi-unlock me-1"></i> 隗｣髯､
                                         </button>
                                     </td>
                                 </tr>
                                 <tr v-if="blacklist.length === 0">
                                     <td colspan="5" class="text-center py-5 text-muted">
-                                        ブラックリストに登録されているユーザーやサーバーはありません。
-                                    </td>
+                                        繝悶Λ繝・け繝ｪ繧ｹ繝医↓逋ｻ骭ｲ縺輔ｌ縺ｦ縺・ｋ繝ｦ繝ｼ繧ｶ繝ｼ繧・し繝ｼ繝舌・縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -749,7 +690,7 @@
                     <div class="col-md-6">
                         <div class="panel h-100 glass-panel">
                             <h5 class="mb-4 text-accent d-flex justify-content-between">
-                                <span><i class="bi bi-cpu me-2"></i>システム・ヘルスモニター</span>
+                                <span><i class="bi bi-cpu me-2"></i>繧ｷ繧ｹ繝・Β繝ｻ繝倥Ν繧ｹ繝｢繝九ち繝ｼ</span>
                                 <span class="badge" :class="systemStatus.bot.status === 'online' ? 'bg-success' : 'bg-danger'">
                                     {{ systemStatus.bot.status.toUpperCase() }}
                                 </span>
@@ -797,33 +738,31 @@
                                 </div>
                             </div>
                             <button class="btn btn-sm btn-outline-info w-100 mt-3" @click="loadSystemStatus">
-                                <i class="bi bi-arrow-clockwise me-1"></i> 更新
+                                <i class="bi bi-arrow-clockwise me-1"></i> 譖ｴ譁ｰ
                             </button>
                         </div>
                     </div>
 
                     <div class="col-md-6">
                         <div class="panel h-100 glass-panel">
-                            <h5 class="mb-4 text-warning"><i class="bi bi-shield-lock me-2"></i>バックアップ ＆ セキュリティ</h5>
+                            <h5 class="mb-4 text-warning"><i class="bi bi-shield-lock me-2"></i>繝舌ャ繧ｯ繧｢繝・・ ・・繧ｻ繧ｭ繝･繝ｪ繝・ぅ</h5>
                             <div class="mb-4">
-                                <label class="form-label small text-muted">データベース操作</label>
+                                <label class="form-label small text-muted">繝・・繧ｿ繝吶・繧ｹ謫堺ｽ・/label>
                                 <div class="d-grid gap-2">
                                     <button class="btn btn-outline-warning" @click="triggerBackup" :disabled="isBackingUp">
                                         <span v-if="isBackingUp" class="spinner-border spinner-border-sm me-2"></span>
-                                        <i v-else class="bi bi-download me-2"></i>即時バックアップを実行
-                                    </button>
+                                        <i v-else class="bi bi-download me-2"></i>蜊ｳ譎ゅヰ繝・け繧｢繝・・繧貞ｮ溯｡・                                    </button>
                                 </div>
                                 <div class="form-text mt-2 extra-small text-muted">
-                                    実行すると、`backups/` ディレクトリにSQLまたはJSON形式でデータが保存されます。
-                                </div>
+                                    螳溯｡後☆繧九→縲～backups/` 繝・ぅ繝ｬ繧ｯ繝医Μ縺ｫSQL縺ｾ縺溘・JSON蠖｢蠑上〒繝・・繧ｿ縺御ｿ晏ｭ倥＆繧後∪縺吶・                                </div>
                             </div>
                             
                             <div class="mb-0 pt-3 border-top border-secondary">
-                                <label class="form-label small text-muted">システムメンテナンス</label>
+                                <label class="form-label small text-muted">繧ｷ繧ｹ繝・Β繝｡繝ｳ繝・リ繝ｳ繧ｹ</label>
                                 <div class="form-check form-switch d-flex justify-content-between align-items-center p-0">
                                     <div>
-                                        <div class="fw-bold small">メンテナンスモード</div>
-                                        <div class="extra-small text-muted">新規のライセンス申請を一時的にブロックします。</div>
+                                        <div class="fw-bold small">繝｡繝ｳ繝・リ繝ｳ繧ｹ繝｢繝ｼ繝・/div>
+                                        <div class="extra-small text-muted">譁ｰ隕上・繝ｩ繧､繧ｻ繝ｳ繧ｹ逕ｳ隲九ｒ荳譎ら噪縺ｫ繝悶Ο繝・け縺励∪縺吶・/div>
                                     </div>
                                     <input class="form-check-input ms-0" type="checkbox" v-model="settings.maintenance_mode"
                                         @change="updateSetting('maintenance_mode', settings.maintenance_mode)">
@@ -837,47 +776,44 @@
             <!-- Tab Content: Import -->
             <div v-if="activeTab === 'import'" class="px-3">
                 <div class="panel p-4" style="max-width: 800px; margin: 0 auto;">
-                    <h4 class="mb-4"><i class="bi bi-file-earmark-arrow-up me-2"></i>BOOTHデータインポート</h4>
+                    <h4 class="mb-4"><i class="bi bi-file-earmark-arrow-up me-2"></i>BOOTH繝・・繧ｿ繧､繝ｳ繝昴・繝・/h4>
                     <div class="alert alert-info border-0 rounded-4 p-3 mb-4">
                         <i class="bi bi-info-circle me-2"></i>
-                        BOOTHからダウンロードした「注文リストCSV」をそのままアップロードできるよ。
-                        注文番号が自動的にライセンスキーとして登録されるから、手動で発行する手間が省けるね。
-                    </div>
+                        BOOTH縺九ｉ繝繧ｦ繝ｳ繝ｭ繝ｼ繝峨＠縺溘梧ｳｨ譁・Μ繧ｹ繝・SV縲阪ｒ縺昴・縺ｾ縺ｾ繧｢繝・・繝ｭ繝ｼ繝峨〒縺阪ｋ繧医・                        豕ｨ譁・分蜿ｷ縺瑚・蜍慕噪縺ｫ繝ｩ繧､繧ｻ繝ｳ繧ｹ繧ｭ繝ｼ縺ｨ縺励※逋ｻ骭ｲ縺輔ｌ繧九°繧峨∵焔蜍輔〒逋ｺ陦後☆繧区焔髢薙′逵√￠繧九・縲・                    </div>
 
                     <div class="mb-4 p-5 border border-dashed border-secondary rounded-4 text-center" @dragover.prevent
                         @drop.prevent="handleCsvDrop"
                         style="border-style: dashed !important; background: rgba(255,255,255,0.02);">
                         <i class="bi bi-cloud-upload display-1 text-accent mb-3"></i>
-                        <h5>ここにCSVファイルをドラッグ＆ドロップ</h5>
-                        <p class="text-muted">または下のボタンから選択してね</p>
+                        <h5>縺薙％縺ｫCSV繝輔ぃ繧､繝ｫ繧偵ラ繝ｩ繝・げ・・ラ繝ｭ繝・・</h5>
+                        <p class="text-muted">縺ｾ縺溘・荳九・繝懊ち繝ｳ縺九ｉ驕ｸ謚槭＠縺ｦ縺ｭ</p>
                         <input type="file" id="csvFile" class="d-none" accept=".csv" @change="handleCsvSelect">
-                        <label for="csvFile" class="btn btn-outline-accent">ファイルを選択</label>
+                        <label for="csvFile" class="btn btn-outline-accent">繝輔ぃ繧､繝ｫ繧帝∈謚・/label>
                     </div>
 
                     <div v-if="importPreview.length > 0" class="mt-4">
-                        <h6>インポートプレビュー (先頭3件)</h6>
+                        <h6>繧､繝ｳ繝昴・繝医・繝ｬ繝薙Η繝ｼ (蜈磯ｭ3莉ｶ)</h6>
                         <div class="table-responsive">
                             <table class="table table-sm table-dark">
                                 <thead>
                                     <tr>
-                                        <th>注文番号</th>
-                                        <th>ティア</th>
-                                        <th>期間</th>
+                                        <th>豕ｨ譁・分蜿ｷ</th>
+                                        <th>繝・ぅ繧｢</th>
+                                        <th>譛滄俣</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="(row, idx) in importPreview.slice(0, 3)" :key="idx">
                                         <td>{{ row.order_id }}</td>
                                         <td>{{ row.tier }}</td>
-                                        <td>{{ row.duration }}ヶ月</td>
+                                        <td>{{ row.duration }}繝ｶ譛・/td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                         <button class="btn btn-primary w-100 mt-2" @click="executeImport" :disabled="isImporting">
                             <span v-if="isImporting" class="spinner-border spinner-border-sm me-2"></span>
-                            {{ importPreview.length }} 件のデータを登録実行
-                        </button>
+                            {{ importPreview.length }} 莉ｶ縺ｮ繝・・繧ｿ繧堤匳骭ｲ螳溯｡・                        </button>
                     </div>
                 </div>
             </div>
@@ -885,57 +821,54 @@
             <!-- Tab Content: Settings -->
             <div v-if="activeTab === 'settings'" class="px-3">
                 <div class="panel p-4" style="max-width: 800px; margin: 0 auto;">
-                    <h4 class="mb-4">システム設定</h4>
+                    <h4 class="mb-4">繧ｷ繧ｹ繝・Β險ｭ螳・/h4>
 
                     <div class="mb-4">
                         <label class="form-label text-accent d-flex justify-content-between">
                             <span>
                                 Discord Webhook URL
                                 <span class="ms-1 cursor-help"
-                                    title="申請の承認や、設定の変更などのログをDiscordのチャンネルに通知するためのURLだよ。 Discordのチャンネル設定から作成してね。"
+                                    title="逕ｳ隲九・謇ｿ隱阪ｄ縲∬ｨｭ螳壹・螟画峩縺ｪ縺ｩ縺ｮ繝ｭ繧ｰ繧奪iscord縺ｮ繝√Ε繝ｳ繝阪Ν縺ｫ騾夂衍縺吶ｋ縺溘ａ縺ｮURL縺繧医・Discord縺ｮ繝√Ε繝ｳ繝阪Ν險ｭ螳壹°繧我ｽ懈・縺励※縺ｭ縲・
                                     style="font-size: 0.8em; opacity: 0.7;">?</span>
                             </span>
-                            <span v-if="settings.webhook_url" class="badge bg-success">設定済み</span>
-                            <span v-else class="badge bg-secondary">未設定</span>
+                            <span v-if="settings.webhook_url" class="badge bg-success">險ｭ螳壽ｸ医∩</span>
+                            <span v-else class="badge bg-secondary">譛ｪ險ｭ螳・/span>
                         </label>
                         <input type="password" class="form-control mb-2" v-model="settings.webhook_url"
                             placeholder="https://discord.com/api/webhooks/...">
                         <div class="d-flex gap-2">
                             <button class="btn btn-primary" @click="updateSetting('webhook_url', settings.webhook_url)">
-                                保存
-                            </button>
+                                菫晏ｭ・                            </button>
                             <button v-if="settings.webhook_url" class="btn btn-outline-secondary" @click="testWebhook">
-                                テスト送信
+                                繝・せ繝磯∽ｿ｡
                             </button>
                         </div>
                         <div class="form-text text-muted mt-2">
-                            申請の承認やアクションのログをDiscordへ送信します。
-                        </div>
+                            逕ｳ隲九・謇ｿ隱阪ｄ繧｢繧ｯ繧ｷ繝ｧ繝ｳ縺ｮ繝ｭ繧ｰ繧奪iscord縺ｸ騾∽ｿ｡縺励∪縺吶・                        </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label text-accent">通知設定 (Reminders)</label>
+                        <label class="form-label text-accent">騾夂衍險ｭ螳・(Reminders)</label>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" v-model="settings.dm_reminders_enabled"
                                 @change="updateSetting('dm_reminders_enabled', settings.dm_reminders_enabled)">
-                            <label class="form-check-label">期限切れ前のDMリマインダーを有効にする</label>
+                            <label class="form-check-label">譛滄剞蛻・ｌ蜑阪・DM繝ｪ繝槭う繝ｳ繝繝ｼ繧呈怏蜉ｹ縺ｫ縺吶ｋ</label>
                         </div>
                         <div class="form-text text-muted">
-                            有効にすると、期限の7日前と1日前に自動的に通知を送るよ。
-                        </div>
+                            譛牙柑縺ｫ縺吶ｋ縺ｨ縲∵悄髯舌・7譌･蜑阪→1譌･蜑阪↓閾ｪ蜍慕噪縺ｫ騾夂衍繧帝√ｋ繧医・                        </div>
                     </div>
 
                     <div class="mb-4 pt-3 border-top border-secondary">
                         <label class="form-label text-accent d-flex justify-content-between">
-                            <span>ロール同期設定 (Dynamic Role Sync)</span>
-                            <button class="btn btn-sm btn-outline-info" @click="addRoleMapping">追加</button>
+                            <span>繝ｭ繝ｼ繝ｫ蜷梧悄險ｭ螳・(Dynamic Role Sync)</span>
+                            <button class="btn btn-sm btn-outline-info" @click="addRoleMapping">霑ｽ蜉</button>
                         </label>
                         <div class="table-responsive">
                             <table class="table table-sm table-dark">
                                 <thead>
                                     <tr>
-                                        <th>ティア名</th>
-                                        <th>ロールID</th>
+                                        <th>繝・ぅ繧｢蜷・/th>
+                                        <th>繝ｭ繝ｼ繝ｫID</th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
@@ -957,28 +890,27 @@
                                         </td>
                                     </tr>
                                     <tr v-if="roleMappings.length === 0">
-                                        <td colspan="3" class="text-center text-muted small">設定なし (環境変数を使用中)</td>
+                                        <td colspan="3" class="text-center text-muted small">險ｭ螳壹↑縺・(迺ｰ蠅・､画焚繧剃ｽｿ逕ｨ荳ｭ)</td>
                                     </tr>
                                 </tbody>
                             </table>
                             <div class="form-text text-muted">
-                                ここで設定したロールIDは、環境変数よりも優先して使用されるよ。
-                            </div>
+                                縺薙％縺ｧ險ｭ螳壹＠縺溘Ο繝ｼ繝ｫID縺ｯ縲∫腸蠅・､画焚繧医ｊ繧ょ━蜈医＠縺ｦ菴ｿ逕ｨ縺輔ｌ繧九ｈ縲・                            </div>
                         </div>
                     </div>
 
                     <div class="mb-4 pt-3 border-top border-secondary">
                         <label class="form-label text-accent d-flex justify-content-between">
-                            <span>スタッフ権限管理 (Team Access Control)</span>
-                            <button class="btn btn-sm btn-outline-info" @click="addStaff">追加</button>
+                            <span>繧ｹ繧ｿ繝・ヵ讓ｩ髯千ｮ｡逅・(Team Access Control)</span>
+                            <button class="btn btn-sm btn-outline-info" @click="addStaff">霑ｽ蜉</button>
                         </label>
                         <div class="table-responsive">
                             <table class="table table-sm table-dark">
                                 <thead>
                                     <tr>
-                                        <th>ユーザーID</th>
-                                        <th>ユーザー名</th>
-                                        <th>権限</th>
+                                        <th>繝ｦ繝ｼ繧ｶ繝ｼID</th>
+                                        <th>繝ｦ繝ｼ繧ｶ繝ｼ蜷・/th>
+                                        <th>讓ｩ髯・/th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
@@ -990,8 +922,8 @@
                                             <select
                                                 class="form-select form-select-sm bg-dark text-white border-secondary"
                                                 v-model="member.role" @change="updateStaffRole(member)">
-                                                <option value="moderator">モデレーター (Moderator)</option>
-                                                <option value="admin">管理者 (Admin)</option>
+                                                <option value="moderator">繝｢繝・Ξ繝ｼ繧ｿ繝ｼ (Moderator)</option>
+                                                <option value="admin">邂｡逅・・(Admin)</option>
                                             </select>
                                         </td>
                                         <td>
@@ -1002,7 +934,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="staffList.length === 0">
-                                        <td colspan="4" class="text-center text-muted small">登録されているスタッフはいません。</td>
+                                        <td colspan="4" class="text-center text-muted small">逋ｻ骭ｲ縺輔ｌ縺ｦ縺・ｋ繧ｹ繧ｿ繝・ヵ縺ｯ縺・∪縺帙ｓ縲・/td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1011,17 +943,17 @@
 
                     <div class="mb-4 pt-3 border-top border-secondary">
                         <label class="form-label text-accent d-flex justify-content-between">
-                            <span>自動承認ルール (Auto-Approval Rules)</span>
+                            <span>閾ｪ蜍墓価隱阪Ν繝ｼ繝ｫ (Auto-Approval Rules)</span>
                             <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal"
-                                data-bs-target="#ruleModal">追加</button>
+                                data-bs-target="#ruleModal">霑ｽ蜉</button>
                         </label>
                         <div class="table-responsive">
                             <table class="table table-sm table-dark">
                                 <thead>
                                     <tr>
-                                        <th>パターン (RegExp)</th>
-                                        <th>プラン</th>
-                                        <th>期間</th>
+                                        <th>繝代ち繝ｼ繝ｳ (RegExp)</th>
+                                        <th>繝励Λ繝ｳ</th>
+                                        <th>譛滄俣</th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
@@ -1029,7 +961,7 @@
                                     <tr v-for="rule in automationRules" :key="rule.id">
                                         <td><code>{{ rule.pattern }}</code></td>
                                         <td>{{ rule.tier }}</td>
-                                        <td>{{ rule.duration_months }}ヶ月 {{ rule.duration_days }}日</td>
+                                        <td>{{ rule.duration_months }}繝ｶ譛・{{ rule.duration_days }}譌･</td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-danger"
                                                 @click="deleteAutomationRule(rule.id)">
@@ -1038,7 +970,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="automationRules.length === 0">
-                                        <td colspan="4" class="text-center text-muted small">自動化ルールはありません。</td>
+                                        <td colspan="4" class="text-center text-muted small">閾ｪ蜍募喧繝ｫ繝ｼ繝ｫ縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・/td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1047,42 +979,40 @@
 
                     <div class="mb-4 pt-3 border-top border-secondary">
                         <label class="form-label text-accent d-flex justify-content-between">
-                            <span>システム制御 (System Control)</span>
+                            <span>繧ｷ繧ｹ繝・Β蛻ｶ蠕｡ (System Control)</span>
                         </label>
                         <div class="p-3 rounded-3 bg-glass-sm border border-soft mb-3">
                             <div class="form-check form-switch d-flex justify-content-between align-items-center p-0">
                                 <div>
-                                    <label class="form-check-label fw-bold">メンテナンスモード</label>
-                                    <div class="small text-muted">有効にすると、ユーザーからの新規申請が一時停止されます。</div>
+                                    <label class="form-check-label fw-bold">繝｡繝ｳ繝・リ繝ｳ繧ｹ繝｢繝ｼ繝・/label>
+                                    <div class="small text-muted">譛牙柑縺ｫ縺吶ｋ縺ｨ縲√Θ繝ｼ繧ｶ繝ｼ縺九ｉ縺ｮ譁ｰ隕冗筏隲九′荳譎ょ●豁｢縺輔ｌ縺ｾ縺吶・/div>
                                 </div>
                                 <input class="form-check-input ms-0" type="checkbox" v-model="settings.maintenance_mode"
                                     @change="updateSetting('maintenance_mode', settings.maintenance_mode)">
                             </div>
                         </div>
                         <div class="d-grid gap-2">
-                            <button class="btn btn-outline-danger btn-sm" @click="triggerBackup" :disabled="isBackingUp">
-                                <span v-if="isBackingUp" class="spinner-border spinner-border-sm me-2"></span>
-                                <i class="bi bi-shield-check"></i> データベースのフルバックアップを実行
-                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @click="triggerBackup">
+                                <i class="bi bi-shield-check"></i> 繝・・繧ｿ繝吶・繧ｹ縺ｮ繝輔Ν繝舌ャ繧ｯ繧｢繝・・繧貞ｮ溯｡・                            </button>
                         </div>
                     </div>
 
                     <div class="mb-4 pt-3 border-top border-secondary">
                         <label class="form-label text-accent d-flex justify-content-between">
-                            <span>外部連携設定 (External API Keys)</span>
+                            <span>螟夜Κ騾｣謳ｺ險ｭ螳・(External API Keys)</span>
                             <div class="d-flex gap-2">
-                                <input type="text" class="form-control form-control-sm" placeholder="キーの名前"
+                                <input type="text" class="form-control form-control-sm" placeholder="繧ｭ繝ｼ縺ｮ蜷榊燕"
                                     v-model="newApiKeyName">
-                                <button class="btn btn-sm btn-outline-info" @click="createApiKey">発行</button>
+                                <button class="btn btn-sm btn-outline-info" @click="createApiKey">逋ｺ陦・/button>
                             </div>
                         </label>
                         <div class="table-responsive">
                             <table class="table table-sm table-dark">
                                 <thead>
                                     <tr>
-                                        <th>名前</th>
-                                        <th>キー (ID)</th>
-                                        <th>最終利用</th>
+                                        <th>蜷榊燕</th>
+                                        <th>繧ｭ繝ｼ (ID)</th>
+                                        <th>譛邨ょ茜逕ｨ</th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
@@ -1090,7 +1020,7 @@
                                     <tr v-for="k in apiKeys" :key="k.key_id">
                                         <td>{{ k.name }}</td>
                                         <td><code>{{ k.key_id.substring(0, 12) }}...</code></td>
-                                        <td>{{ k.last_used_at ? formatDate(k.last_used_at) : '未使用' }}</td>
+                                        <td>{{ k.last_used_at ? formatDate(k.last_used_at) : '譛ｪ菴ｿ逕ｨ' }}</td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-danger"
                                                 @click="deleteApiKey(k.key_id)">
@@ -1099,7 +1029,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="apiKeys.length === 0">
-                                        <td colspan="4" class="text-center text-muted small">APIキーは発行されていません。</td>
+                                        <td colspan="4" class="text-center text-muted small">API繧ｭ繝ｼ縺ｯ逋ｺ陦後＆繧後※縺・∪縺帙ｓ縲・/td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1107,32 +1037,31 @@
                     </div>
                 </div>
             </div>
-            </div>
+
             <!-- Tab Content: Announcements -->
             <div v-if="activeTab === 'announce'" class="px-3">
 
                 <div class="panel p-4" style="max-width: 800px; margin: 0 auto;">
                     <div class="mb-4">
                         <label class="form-label d-flex justify-content-between">
-                            テンプレート選択
-                            <small class="text-muted">クリックで内容を自動生成</small>
+                            繝・Φ繝励Ξ繝ｼ繝磯∈謚・                            <small class="text-muted">繧ｯ繝ｪ繝・け縺ｧ蜀・ｮｹ繧定・蜍慕函謌・/small>
                         </label>
                         <div class="d-flex flex-wrap gap-2">
-                            <button class="btn btn-sm btn-outline-info" @click="applyTemplate('update')">✨
-                                アップデート</button>
-                            <button class="btn btn-sm btn-outline-warning" @click="applyTemplate('maintenance')">🔧
-                                メンテナンス</button>
-                            <button class="btn btn-sm btn-outline-danger" @click="applyTemplate('fix')">🐞
-                                不具合修正</button>
+                            <button class="btn btn-sm btn-outline-info" @click="applyTemplate('update')">笨ｨ
+                                繧｢繝・・繝・・繝・/button>
+                            <button class="btn btn-sm btn-outline-warning" @click="applyTemplate('maintenance')">肌
+                                繝｡繝ｳ繝・リ繝ｳ繧ｹ</button>
+                            <button class="btn btn-sm btn-outline-danger" @click="applyTemplate('fix')">裾
+                                荳榊・蜷井ｿｮ豁｣</button>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">告知タイトル</label>
+                        <label class="form-label">蜻顔衍繧ｿ繧､繝医Ν</label>
                         <div class="input-group">
                             <input type="text" v-model="announceModal.title" class="form-control"
-                                placeholder="例: ボットのアップデートのお知らせ (v1.2.0)">
-                            <button class="btn btn-outline-secondary" @click="fetchBotVersion" title="最新バージョンを取得">
+                                placeholder="萓・ 繝懊ャ繝医・繧｢繝・・繝・・繝医・縺顔衍繧峨○ (v1.2.0)">
+                            <button class="btn btn-outline-secondary" @click="fetchBotVersion" title="譛譁ｰ繝舌・繧ｸ繝ｧ繝ｳ繧貞叙蠕・>
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                     <path
                                         d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-1.34 3H6.262a.25.25 0 0 1-.192-.41l1.966-2.36a.25.25 0 0 1 .384 0l1.966 2.36a.25.25 0 0 1-.192.41zM4 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm1-8.534V0h-2v2.466C1.192 3.12 0 5.06 0 7s1.192 3.88 3.034 4.534V14h2v-2.466C6.808 10.88 8 8.94 8 7s-1.192-3.88-3.034-4.534z" />
@@ -1140,69 +1069,47 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Target Selection UI -->
-                    <div class="mb-4 pt-2 border-top border-soft">
-                        <label class="form-label text-accent d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-people me-1"></i> ターゲット選定 (Target Audience)</span>
-                            <span class="badge bg-dark-soft text-muted border border-soft px-2">DM個別送信</span>
-                        </label>
-                        <div class="d-flex flex-wrap gap-4 p-3 rounded-3 bg-glass-sm border border-soft">
-                            <div class="form-check">
-                                <input class="form-check-input custom-check" type="checkbox" id="tierAllMain" value="all" v-model="announceModal.target_tiers">
-                                <label class="form-check-label small fw-bold" for="tierAllMain">全てのユーザー</label>
-                            </div>
-                            <div class="form-check" v-for="tier in ['Free', 'Pro', 'Pro+', 'ULTIMATE']" :key="tier">
-                                <input class="form-check-input custom-check" type="checkbox" :id="'tierMain' + tier" :value="tier" v-model="announceModal.target_tiers">
-                                <label class="form-check-label small" :for="'tierMain' + tier">{{ tier }}</label>
-                            </div>
-                        </div>
-                        <div class="mt-2 small text-muted">
-                            <i class="bi bi-info-circle me-1"></i> ティアを選択すると、チャンネル投稿に加えて該当ユーザーへのDM送信（キューイング）が開始されます。
-                        </div>
-                    </div>
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            告知内容
+                            蜻顔衍蜀・ｮｹ
                             <div class="btn-group btn-group-sm">
                                 <button class="btn btn-outline-secondary" @click="insertText('**', '**')"
-                                    title="太字"><b>B</b></button>
-                                <button class="btn btn-outline-secondary" @click="insertText('`', '`')" title="コード部分">`
+                                    title="螟ｪ蟄・><b>B</b></button>
+                                <button class="btn btn-outline-secondary" @click="insertText('`', '`')" title="繧ｳ繝ｼ繝蛾Κ蛻・>`
                                     `</button>
                                 <button class="btn btn-outline-secondary" @click="insertText('```\n', '\n```')"
-                                    title="コードブロック">code</button>
+                                    title="繧ｳ繝ｼ繝峨ヶ繝ｭ繝・け">code</button>
                                 <button class="btn btn-outline-secondary" @click="insertText('- ')"
-                                    title="リスト">-</button>
+                                    title="繝ｪ繧ｹ繝・>-</button>
                             </div>
                         </label>
                         <div class="form-text text-muted mb-2">
-                            <i class="bi bi-info-circle me-1"></i> Markdownが使用可能です。
-                        </div>
+                            <i class="bi bi-info-circle me-1"></i> Markdown縺御ｽｿ逕ｨ蜿ｯ閭ｽ縺ｧ縺吶・                        </div>
                         <textarea v-model="announceModal.content" class="form-control" rows="10"
-                            placeholder="告知の詳細内容を入力してください。Markdownが使用可能です。"></textarea>
+                            placeholder="蜻顔衍縺ｮ隧ｳ邏ｰ蜀・ｮｹ繧貞・蜉帙＠縺ｦ縺上□縺輔＞縲・arkdown縺御ｽｿ逕ｨ蜿ｯ閭ｽ縺ｧ縺吶・></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">重要度</label>
+                        <label class="form-label">驥崎ｦ∝ｺｦ</label>
                         <select v-model="announceModal.type" class="form-select">
-                            <option value="normal">通常 (緑)</option>
-                            <option value="important">重要 (赤)</option>
+                            <option value="normal">騾壼ｸｸ (邱・</option>
+                            <option value="important">驥崎ｦ・(襍､)</option>
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label">送信予約日時 <small class="text-muted">(空欄で即時送信)</small></label>
+                        <label class="form-label">騾∽ｿ｡莠育ｴ・律譎・<small class="text-muted">(遨ｺ谺・〒蜊ｳ譎る∽ｿ｡)</small></label>
                         <input type="datetime-local" v-model="announceModal.scheduled_at" class="form-control mb-3">
 
-                        <label class="form-label">連動タスクの実行</label>
+                        <label class="form-label">騾｣蜍輔ち繧ｹ繧ｯ縺ｮ螳溯｡・/label>
                         <div class="d-flex flex-wrap gap-3 p-3 bg-dark-subtle rounded-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="sync_subs"
                                     v-model="announceModal.associated_tasks" id="task_sync">
-                                <label class="form-check-label" for="task_sync">サブスク同期</label>
+                                <label class="form-check-label" for="task_sync">繧ｵ繝悶せ繧ｯ蜷梧悄</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="cleanup_logs"
                                     v-model="announceModal.associated_tasks" id="task_cleanup">
-                                <label class="form-check-label" for="task_cleanup">旧ログ削除</label>
+                                <label class="form-check-label" for="task_cleanup">譌ｧ繝ｭ繧ｰ蜑企勁</label>
                             </div>
                         </div>
                     </div>
@@ -1210,22 +1117,22 @@
                     <button class="btn btn-primary w-100 py-2 fw-bold" @click="sendAnnouncement"
                         :disabled="announceModal.sending">
                         <span v-if="announceModal.sending" class="spinner-border spinner-border-sm me-2"></span>
-                        サポートサーバーに投稿する
+                        繧ｵ繝昴・繝医し繝ｼ繝舌・縺ｫ謚慕ｨｿ縺吶ｋ
                     </button>
                 </div>
 
                 <div class="panel p-4 mt-4" style="max-width: 1000px; margin: 0 auto;">
-                    <h5 class="mb-4">告知履歴・予約一覧</h5>
+                    <h5 class="mb-4">蜻顔衍螻･豁ｴ繝ｻ莠育ｴ・ｸ隕ｧ</h5>
                     <div class="table-responsive">
                         <table class="table table-dark table-hover table-sm">
                             <thead>
                                 <tr>
-                                    <th>作成日</th>
-                                    <th>予定 / 送信日</th>
-                                    <th>タイトル</th>
-                                    <th>重要度</th>
-                                    <th>状態</th>
-                                    <th class="text-end">操作</th>
+                                    <th>菴懈・譌･</th>
+                                    <th>莠亥ｮ・/ 騾∽ｿ｡譌･</th>
+                                    <th>繧ｿ繧､繝医Ν</th>
+                                    <th>驥崎ｦ∝ｺｦ</th>
+                                    <th>迥ｶ諷・/th>
+                                    <th class="text-end">謫堺ｽ・/th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1243,20 +1150,20 @@
                                     <td>
                                         <span class="badge"
                                             :class="ann.sent_at ? 'bg-secondary' : (ann.is_draft ? 'bg-info' : 'bg-warning')">
-                                            {{ ann.sent_at ? '送信済み' : (ann.is_draft ? '下書き' : '予約中') }}
+                                            {{ ann.sent_at ? '騾∽ｿ｡貂医∩' : (ann.is_draft ? '荳区嶌縺・ : '莠育ｴ・ｸｭ') }}
                                         </span>
                                     </td>
                                     <td class="text-end">
                                         <button v-if="!ann.sent_at" class="btn btn-sm btn-success me-1"
-                                            @click="postNow(ann)">今すぐ送信</button>
+                                            @click="postNow(ann)">莉翫☆縺宣∽ｿ｡</button>
                                         <button v-if="!ann.sent_at" class="btn btn-sm btn-outline-primary me-1"
-                                            @click="openEditAnnounceModal(ann)">編集</button>
+                                            @click="openEditAnnounceModal(ann)">邱ｨ髮・/button>
                                         <button class="btn btn-sm btn-outline-danger"
-                                            @click="deleteAnnouncement(ann.id)">削除</button>
+                                            @click="deleteAnnouncement(ann.id)">蜑企勁</button>
                                     </td>
                                 </tr>
                                 <tr v-if="announcements.length === 0">
-                                    <td colspan="6" class="text-center py-3 text-muted">告知データがありません</td>
+                                    <td colspan="6" class="text-center py-3 text-muted">蜻顔衍繝・・繧ｿ縺後≠繧翫∪縺帙ｓ</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1271,34 +1178,34 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">詳細編集: {{ editModal.data.guild_id }}</h5>
+                            <h5 class="modal-title">隧ｳ邏ｰ邱ｨ髮・ {{ editModal.data.guild_id }}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-4">
-                                <label class="form-label">プラン</label>
+                                <label class="form-label">繝励Λ繝ｳ</label>
                                 <div class="input-group">
                                     <select v-model="editModal.data.tier" class="form-select">
-                                        <option value="Free">Free (無料)</option>
-                                        <option value="Trial Pro">Trial Pro (お試しプロ)</option>
-                                        <option value="Trial Pro+">Trial Pro+ (お試しプロプラス)</option>
-                                        <option value="Pro">Pro (プロ)</option>
-                                        <option value="Pro+">Pro+ (プロプラス)</option>
-                                        <option value="ULTIMATE">ULTIMATE (無制限)</option>
+                                        <option value="Free">Free (辟｡譁・</option>
+                                        <option value="Trial Pro">Trial Pro (縺願ｩｦ縺励・繝ｭ)</option>
+                                        <option value="Trial Pro+">Trial Pro+ (縺願ｩｦ縺励・繝ｭ繝励Λ繧ｹ)</option>
+                                        <option value="Pro">Pro (繝励Ο)</option>
+                                        <option value="Pro+">Pro+ (繝励Ο繝励Λ繧ｹ)</option>
+                                        <option value="ULTIMATE">ULTIMATE (辟｡蛻ｶ髯・</option>
                                     </select>
-                                    <button class="btn btn-outline-primary" @click="updateTier">変更保存</button>
+                                    <button class="btn btn-outline-primary" @click="updateTier">螟画峩菫晏ｭ・/button>
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">期間調整 <small class="text-muted">※短縮はマイナス入力</small></label>
+                                <label class="form-label">譛滄俣隱ｿ謨ｴ <small class="text-muted">窶ｻ遏ｭ邵ｮ縺ｯ繝槭う繝翫せ蜈･蜉・/small></label>
                                 <div class="input-group">
                                     <input type="number" v-model="editModal.extendDuration" class="form-control">
                                     <select v-model="editModal.extendUnit" class="form-select" style="max-width: 80px;">
-                                        <option value="m">月</option>
-                                        <option value="d">日</option>
+                                        <option value="m">譛・/option>
+                                        <option value="d">譌･</option>
                                     </select>
-                                    <button class="btn btn-success" @click="saveEdit">実行</button>
+                                    <button class="btn btn-success" @click="saveEdit">螳溯｡・/button>
                                 </div>
                             </div>
                         </div>
@@ -1329,7 +1236,7 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">申請詳細</h5>
+                            <h5 class="modal-title">逕ｳ隲玖ｩｳ邏ｰ</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
@@ -1339,13 +1246,13 @@
                                         appDetailsModal.data.author_id }})</span></div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted small">申請内容 (全文)</label>
+                                <label class="form-label text-muted small">逕ｳ隲句・螳ｹ (蜈ｨ譁・</label>
                                 <div class="p-3 bg-dark rounded border border-secondary" style="white-space: pre-wrap;">
                                     {{
                                     appDetailsModal.data.content }}</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted small">希望プラン</label>
+                                <label class="form-label text-muted small">蟶梧悍繝励Λ繝ｳ</label>
                                 <div>
                                     <span class="badge" :class="{
                                         'badge-tier-pro': appDetailsModal.data.parsed_tier === 'Pro',
@@ -1353,33 +1260,32 @@
                                         'badge-tier-trial': String(appDetailsModal.data.parsed_tier).includes('Trial'),
                                         'badge-tier-ultimate': appDetailsModal.data.parsed_tier === 'ULTIMATE',
                                         'bg-secondary': !appDetailsModal.data.parsed_tier
-                                    }">{{ appDetailsModal.data.parsed_tier || '不明' }}</span>
+                                    }">{{ appDetailsModal.data.parsed_tier || '荳肴・' }}</span>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label text-muted small">解析: ユーザーID</label>
+                                <label class="form-label text-muted small">隗｣譫・ 繝ｦ繝ｼ繧ｶ繝ｼID</label>
                                 <div class="form-control-plaintext">{{ appDetailsModal.data.parsed_user_id || 'N/A'
                                     }}
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label text-muted small">解析: サーバーID</label>
+                                <label class="form-label text-muted small">隗｣譫・ 繧ｵ繝ｼ繝舌・ID</label>
                                 <div class="form-control-plaintext">{{ appDetailsModal.data.parsed_guild_id || 'N/A'
                                     }}
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label text-muted small">解析: Booth注文番号</label>
+                                <label class="form-label text-muted small">隗｣譫・ Booth豕ｨ譁・分蜿ｷ</label>
                                 <div class="form-control-plaintext text-accent fw-bold">{{
-                                    appDetailsModal.data.booth_order_id || '未入力' }}</div>
+                                    appDetailsModal.data.booth_order_id || '譛ｪ蜈･蜉・ }}</div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button v-if="appDetailsModal.data.status === 'approved'" type="button"
                                 class="btn btn-outline-warning" @click="reissueKey(appDetailsModal.data)">
-                                <i class="bi bi-arrow-repeat"></i> キー再発行
-                            </button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                                <i class="bi bi-arrow-repeat"></i> 繧ｭ繝ｼ蜀咲匱陦・                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">髢峨§繧・/button>
                         </div>
                     </div>
                 </div>
@@ -1390,38 +1296,38 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">ライセンス新規作成</h5>
+                            <h5 class="modal-title">繝ｩ繧､繧ｻ繝ｳ繧ｹ譁ｰ隕丈ｽ懈・</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label class="form-label">サーバーID</label>
+                                <label class="form-label">繧ｵ繝ｼ繝舌・ID</label>
                                 <input type="text" v-model="addModal.data.guild_id" class="form-control"
                                     placeholder="Discord Guild ID">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">ユーザーID</label>
+                                <label class="form-label">繝ｦ繝ｼ繧ｶ繝ｼID</label>
                                 <input type="text" v-model="addModal.data.user_id" class="form-control"
                                     placeholder="Discord User ID">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">プラン</label>
+                                <label class="form-label">繝励Λ繝ｳ</label>
                                 <select v-model="addModal.data.tier" class="form-select">
-                                    <option value="Free">Free (無料)</option>
-                                    <option value="Trial Pro">Trial Pro (お試しプロ)</option>
-                                    <option value="Trial Pro+">Trial Pro+ (お試しプロプラス)</option>
-                                    <option value="Pro">Pro (プロ)</option>
-                                    <option value="Pro+">Pro+ (プロプラス)</option>
-                                    <option value="ULTIMATE">ULTIMATE (無制限)</option>
+                                    <option value="Free">Free (辟｡譁・</option>
+                                    <option value="Trial Pro">Trial Pro (縺願ｩｦ縺励・繝ｭ)</option>
+                                    <option value="Trial Pro+">Trial Pro+ (縺願ｩｦ縺励・繝ｭ繝励Λ繧ｹ)</option>
+                                    <option value="Pro">Pro (繝励Ο)</option>
+                                    <option value="Pro+">Pro+ (繝励Ο繝励Λ繧ｹ)</option>
+                                    <option value="ULTIMATE">ULTIMATE (辟｡蛻ｶ髯・</option>
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">期間 (例: 1m, 1y, 30d)</label>
+                                <label class="form-label">譛滄俣 (萓・ 1m, 1y, 30d)</label>
                                 <input type="text" v-model="addModal.data.duration" class="form-control">
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary w-100" @click="createSub">作成実行</button>
+                            <button type="button" class="btn btn-primary w-100" @click="createSub">菴懈・螳溯｡・/button>
                         </div>
                     </div>
                 </div>
@@ -1432,32 +1338,32 @@
                 <div class="modal-dialog">
                     <div class="modal-content text-white bg-dark border-secondary">
                         <div class="modal-header border-secondary">
-                            <h5 class="modal-title">自動承認ルールの追加</h5>
+                            <h5 class="modal-title">閾ｪ蜍墓価隱阪Ν繝ｼ繝ｫ縺ｮ霑ｽ蜉</h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label class="form-label">一致方式</label>
+                                <label class="form-label">荳閾ｴ譁ｹ蠑・/label>
                                 <select class="form-select bg-dark text-white border-secondary"
                                     v-model="newRule.match_type">
-                                    <option value="regex">正規表現 (部分一致)</option>
-                                    <option value="exact">完全一致 (Booth名)</option>
-                                    <option value="name_match">名前一致 (表示名 == Booth名)</option>
+                                    <option value="regex">豁｣隕剰｡ｨ迴ｾ (驛ｨ蛻・ｸ閾ｴ)</option>
+                                    <option value="exact">螳悟・荳閾ｴ (Booth蜷・</option>
+                                    <option value="name_match">蜷榊燕荳閾ｴ (陦ｨ遉ｺ蜷・== Booth蜷・</option>
                                 </select>
                             </div>
                             <div class="mb-3" v-if="newRule.match_type !== 'name_match'">
-                                <label class="form-label">条件パターン</label>
+                                <label class="form-label">譚｡莉ｶ繝代ち繝ｼ繝ｳ</label>
                                 <input type="text" v-model="newRule.pattern"
-                                    class="form-control bg-dark text-white border-secondary" placeholder="キーワードなど">
+                                    class="form-control bg-dark text-white border-secondary" placeholder="繧ｭ繝ｼ繝ｯ繝ｼ繝峨↑縺ｩ">
                                 <div class="form-text text-muted" v-if="newRule.match_type === 'regex'">
-                                    正規表現が使えます（大文字小文字無視）</div>
+                                    豁｣隕剰｡ｨ迴ｾ縺御ｽｿ縺医∪縺呻ｼ亥､ｧ譁・ｭ怜ｰ乗枚蟄礼┌隕厄ｼ・/div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label d-block">供給ティア</label>
+                                <label class="form-label d-block">萓帷ｵｦ繝・ぅ繧｢</label>
                                 <div class="form-check form-switch mb-2">
                                     <input class="form-check-input" type="checkbox" id="followAppTier"
                                         v-model="newRule.tier_mode" true-value="follow_app" false-value="fixed">
-                                    <label class="form-check-label" for="followAppTier">申請されたプランを優先</label>
+                                    <label class="form-check-label" for="followAppTier">逕ｳ隲九＆繧後◆繝励Λ繝ｳ繧貞━蜈・/label>
                                 </div>
                                 <select v-model="newRule.tier" class="form-select bg-dark text-white border-secondary"
                                     :disabled="newRule.tier_mode === 'follow_app'">
@@ -1468,14 +1374,14 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">期間 (ヶ月)</label>
+                                <label class="form-label">譛滄俣 (繝ｶ譛・</label>
                                 <input type="number" v-model.number="newRule.duration_months"
                                     class="form-control bg-dark text-white border-secondary">
                             </div>
                         </div>
                         <div class="modal-footer border-secondary">
                             <button type="button" class="btn btn-primary w-100" @click="addAutomationRule"
-                                data-bs-dismiss="modal">ルールを保存</button>
+                                data-bs-dismiss="modal">繝ｫ繝ｼ繝ｫ繧剃ｿ晏ｭ・/button>
                         </div>
                     </div>
                 </div>
@@ -1486,27 +1392,27 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content text-white bg-dark border-secondary">
                         <div class="modal-header border-secondary">
-                            <h5 class="modal-title">告知内容の編集</h5>
+                            <h5 class="modal-title">蜻顔衍蜀・ｮｹ縺ｮ邱ｨ髮・/h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label class="form-label">告知タイトル</label>
+                                <label class="form-label">蜻顔衍繧ｿ繧､繝医Ν</label>
                                 <input type="text" v-model="editAnnounceModal.data.title"
                                     class="form-control bg-dark text-white border-secondary">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">告知内容</label>
+                                <label class="form-label">蜻顔衍蜀・ｮｹ</label>
                                 <textarea v-model="editAnnounceModal.data.content"
                                     class="form-control bg-dark text-white border-secondary" rows="8"></textarea>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">重要度</label>
+                                    <label class="form-label">驥崎ｦ∝ｺｦ</label>
                                     <select v-model="editAnnounceModal.data.type"
                                         class="form-select bg-dark text-white border-secondary">
-                                        <option value="normal">通常 (緑)</option>
-                                        <option value="important">重要 (赤)</option>
+                                        <option value="normal">騾壼ｸｸ (邱・</option>
+                                        <option value="important">驥崎ｦ・(襍､)</option>
                                     </select>
                                 </div>
                                 <input type="datetime-local" v-model="editAnnounceModal.data.scheduled_at"
@@ -1514,35 +1420,35 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            <label class="form-label">連動タスクの実行</label>
+                            <label class="form-label">騾｣蜍輔ち繧ｹ繧ｯ縺ｮ螳溯｡・/label>
                             <div class="d-flex flex-wrap gap-3 p-2 border border-secondary rounded">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="sync_subs"
                                         v-model="editAnnounceModal.data.associated_tasks"
                                         :id="'edit_task_sync_'+editAnnounceModal.data.id">
                                     <label class="form-check-label"
-                                        :for="'edit_task_sync_'+editAnnounceModal.data.id">サブスク同期</label>
+                                        :for="'edit_task_sync_'+editAnnounceModal.data.id">繧ｵ繝悶せ繧ｯ蜷梧悄</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="milestone_check"
                                         v-model="editAnnounceModal.data.associated_tasks"
                                         :id="'edit_task_milestone_'+editAnnounceModal.data.id">
                                     <label class="form-check-label"
-                                        :for="'edit_task_milestone_'+editAnnounceModal.data.id">マイルストーン一括チェック</label>
+                                        :for="'edit_task_milestone_'+editAnnounceModal.data.id">繝槭う繝ｫ繧ｹ繝医・繝ｳ荳諡ｬ繝√ぉ繝・け</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="cleanup_logs"
                                         v-model="editAnnounceModal.data.associated_tasks"
                                         :id="'edit_task_cleanup_'+editAnnounceModal.data.id">
                                     <label class="form-check-label"
-                                        :for="'edit_task_cleanup_'+editAnnounceModal.data.id">旧ログ削除</label>
+                                        :for="'edit_task_cleanup_'+editAnnounceModal.data.id">譌ｧ繝ｭ繧ｰ蜑企勁</label>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer border-secondary">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                        <button type="button" class="btn btn-primary" @click="saveAnnounceEdit">変更を保存</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
+                        <button type="button" class="btn btn-primary" @click="saveAnnounceEdit">螟画峩繧剃ｿ晏ｭ・/button>
                     </div>
                 </div>
             </div>
