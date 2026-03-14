@@ -1052,7 +1052,7 @@ createApp({
             toggleSelectAll, bulkDeactivate,
             announcements, deleteAnnouncement, openEditAnnounceModal, editAnnounceModal, saveAnnounceEdit, postNow,
             applyTemplate, fetchBotVersion, insertText,
-            systemStatus, isBackingUp,
+            systemStatus, isBackingUp, formatDuration, triggerBackup,
             blacklist, removeFromBlacklist, openBlacklistModal, handleCsvDrop, handleCsvSelect, executeImport, importPreview, isImporting,
             roleMappings, fetchRoleMappings, saveRoleMapping, addRoleMapping, deleteRoleMapping,
             staffList, fetchStaff, updateStaffRole, addStaff, removeStaff,
@@ -1095,11 +1095,6 @@ createApp({
                 const token = localStorage.getItem('token');
                 const url = `/api/export/${type}?format=${format}&token=${token}`;
                 window.open(url, '_blank');
-            },
-            triggerBackup: async () => {
-                if (!confirm('データベースのフルバックアップを開始しますか？')) return;
-                const res = await api('/system/backup', 'POST');
-                if (res.success) alert('バックアップを作成しました');
             }
         };
     }
