@@ -102,8 +102,8 @@ router.get('/stats', authMiddleware, async (req, res) => {
         const totalRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE AND tier NOT IN ('Free', '0')");
         stats.total_count = parseInt(totalRes.rows[0].count);
 
-        // Paid Count (Only Pro, Pro+, excluding Trials, Free, but INCLUDING ULTIMATE)
-        const paidRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE AND tier IN ('Pro', 'Pro+', '1', '3', 'ULTIMATE')");
+        // Paid Count (Only Monthly/Yearly members: Pro, Pro+. Excluding Trials, Free, and ULTIMATE)
+        const paidRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE AND tier IN ('Pro', 'Pro+', '1', '3')");
         stats.paid_count = parseInt(paidRes.rows[0].count);
 
         // Expiring Soon (within 7 days)
