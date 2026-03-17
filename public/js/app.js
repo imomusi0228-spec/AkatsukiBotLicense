@@ -66,7 +66,41 @@ createApp({
         // Computed
         // We now mostly rely on server-side filtering, but we keep this for reactive UI if needed
         const filteredSubscriptions = computed(() => {
-            return subscriptions.value;
+            // Group subscriptions by user_id to show one row per user
+            const grouped = {};
+            subscriptions.value.forEach(sub => {
+                if (!grouped[sub.user_id]) {
+                    grouped[sub.user_id] = {
+                        ...sub,
+                        server_count: 0,
+                        all_subs: []
+                    };
+                }
+                grouped[sub.user_id].server_count++;
+                grouped[sub.user_id].all_subs.push(sub);
+                
+                const tierPriority = { 'ULTIMATE': 3, 'Pro+': 2, 'Pro': 1, 'Free': 0 };
+                const currentPriority = tierPriority[grouped[sub.user_id].tier] || 0;
+                const newPriority = tierPriority[sub.tier] || 0;
+                
+                if (newPriority >= currentPriority) {
+                    grouped[sub.user_id].tier = sub.tier;
+                }
+                
+                // Expiry Date Logic: 
+                // If any sub is ULTIMATE, the representative expiry is null (Indefinite)
+                // Otherwise, show the latest expiry date among their subs
+                if (sub.tier === 'ULTIMATE') {
+                    grouped[sub.user_id].has_ultimate = true;
+                }
+                
+                if (grouped[sub.user_id].has_ultimate) {
+                    grouped[sub.user_id].expiry_date = null;
+                } else if (!grouped[sub.user_id].expiry_date || (sub.expiry_date && new Date(sub.expiry_date) > new Date(grouped[sub.user_id].expiry_date))) {
+                    grouped[sub.user_id].expiry_date = sub.expiry_date;
+                }
+            });
+            return Object.values(grouped);
         });
 
         const currentUserRole = computed(() => {
@@ -343,9 +377,16 @@ createApp({
         const loadSystemStatus = async () => {
             try {
                 const data = await api('/system/status');
-                if (data) systemStatus.value = data;
+                if (data) {
+                    systemStatus.value = data;
+                    if (data.bot && data.bot.status !== 'online') {
+                        systemStatus.value.bot.error = 'Bot Process Not Responding';
+                    }
+                }
             } catch (err) {
                 console.error('Failed to load system status:', err);
+                systemStatus.value.bot.status = 'offline';
+                systemStatus.value.bot.error = err.message || 'API Server Error';
             }
         };
 
@@ -367,12 +408,19 @@ createApp({
         };
 
         const showUserDetails = async (sub) => {
+            console.log('[DEBUG] Opening UserDetails for:', sub.user_id);
             userDetail.value.id = sub.user_id;
             userDetail.value.displayName = sub.user_display_name;
             userDetail.value.avatar = sub.user_avatar ? `https://cdn.discordapp.com/avatars/${sub.user_id}/${sub.user_avatar}.png?size=128` : null;
             userDetail.value.servers = [];
 
-            const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
+            // Ensure modal instance is correctly handled
+            const modalEl = document.getElementById('userDetailModal');
+            if (!modalEl) {
+                console.error('[FATAL] userDetailModal not found in DOM!');
+                return;
+            }
+            const modal = new bootstrap.Modal(modalEl);
             modal.show();
 
             try {
@@ -381,6 +429,12 @@ createApp({
             } catch (err) {
                 console.error('Failed to fetch user servers:', err);
             }
+        };
+
+        const getUserServerCount = (userId) => {
+            // Already calculated in the computed property
+            const userRow = filteredSubscriptions.value.find(u => u.user_id === userId);
+            return userRow ? userRow.server_count : 0;
         };
 
         const formatDuration = (seconds) => {
@@ -520,26 +574,79 @@ createApp({
         };
 
         const deactivateSub = async (sub) => {
-            if (!confirm('ライセンスを無効化（停止）しますか？')) return;
+            const serverName = sub.server_name || sub.cached_servername || sub.guild_id;
+            if (!confirm(`【停止】サーバー「${serverName}」のライセンスを一時停止しますか？\n停止中はFreeプランの機能に制限されますが、後で「再開」できます。`)) return;
             const gId = sub.guild_id;
             await api(`/subscriptions/${gId}`, 'DELETE');
             loadData();
         };
 
         const resumeSub = async (sub) => {
-            if (!confirm('ライセンスを再開しますか？')) return;
+            const serverName = sub.server_name || sub.cached_servername || sub.guild_id;
+            const isExiled = !sub.is_active && blacklist.value.some(b => b.target_id === sub.user_id || b.target_id === sub.guild_id);
+            
+            let msg = `【再開】サーバー「${serverName}」のライセンスを再開しますか？`;
+            if (isExiled) {
+                msg = `【恩赦・復元】サーバー「${serverName}」は現在追放されています。恩赦を与え、ライセンスの復元とブラックリストの封印解除を同時に行いますか？`;
+            }
+
+            if (!confirm(msg)) return;
             const gId = sub.guild_id;
+            
+            // 1. Resume License
             await api(`/subscriptions/${gId}`, 'PUT', {
                 action: 'toggle_active',
                 is_active: true
             });
+
+            // 2. If exiled, remove from blacklist
+            if (isExiled) {
+                const targetId = blacklist.value.find(b => b.target_id === sub.user_id || b.target_id === sub.guild_id)?.target_id;
+                if (targetId) {
+                    await api(`/blacklist/${targetId}`, 'DELETE');
+                }
+            }
+
+            loadData();
+        };
+
+        const deactivateSubFromDetail = async (srv) => {
+            const serverName = srv.server_name || srv.guild_id;
+            if (!confirm(`サーバー「${serverName}」のライセンスを停止しますか？`)) return;
+            await api(`/subscriptions/${srv.guild_id}`, 'DELETE');
+            srv.is_active = false;
+            loadData();
+        };
+
+        const resumeSubFromDetail = async (srv) => {
+            const serverName = srv.server_name || srv.guild_id;
+            if (!confirm(`サーバー「${serverName}」のライセンスを再開しますか？`)) return;
+            await api(`/subscriptions/${srv.guild_id}`, 'PUT', {
+                action: 'toggle_active',
+                is_active: true
+            });
+            srv.is_active = true;
             loadData();
         };
 
         const hardDeleteSub = async (sub) => {
-            if (!confirm('ライセンス情報を「完全に削除」しますか？\nこの操作は取り消せません。')) return;
+            const serverName = sub.server_name || sub.cached_servername || sub.guild_id;
+            if (!confirm(`【⚡追放 (Exile)】サーバー「${serverName}」を完全に追放しますか？\nライセンスは即座に停止されます。\n※この操作自体は後で「恩赦・復元」から取り消し可能です。`)) return;
+            
             const gId = sub.guild_id;
-            await api(`/subscriptions/${gId}/delete`, 'DELETE');
+            const uId = sub.user_id;
+
+            // 1. Deactivate License
+            await api(`/subscriptions/${gId}`, 'DELETE');
+
+            // 2. Ask for Blacklist
+            if (confirm(`あわせて、所有者(@${sub.user_handle})またはサーバーを「ブラックリスト」へ封印しますか？\n封印するとコマンド使用やポータルへのアクセスが一切禁止されます。`)) {
+                const type = confirm('「サーバーID」を封印しますか？（キャンセルで「ユーザーID」を封印）') ? 'guild' : 'user';
+                const targetId = type === 'guild' ? gId : uId;
+                const reason = prompt('封印の理由を入力してください（任意）', '管理者による追放処置');
+                await api('/blacklist', 'POST', { target_id: targetId, type, reason });
+            }
+
             loadData();
         };
 
@@ -900,7 +1007,7 @@ createApp({
                 if (isAdminLogged.value || user.value) {
                     loadSystemStatus();
                 }
-            }, 30000);
+            }, 5000);
 
             window.addEventListener('keydown', handleKeydown);
         });
@@ -1047,7 +1154,8 @@ createApp({
             formatDate, deactivateSub, resumeSub, hardDeleteSub, toggleAutoRenew, copyText,
             openEditModal, saveEdit, updateTier, createSub,
             approveApp, reissueKey, deleteApp, openAppDetails, loginWithToken, logout,
-            loadData, changePage, search, showOverallPie,
+            loadData, changePage, search, showOverallPie, showUserDetails, getUserServerCount, userDetail,
+            deactivateSubFromDetail, resumeSubFromDetail,
             announceModal, sendAnnouncement, loadLogs, updateSetting, testWebhook,
             toggleSelectAll, bulkDeactivate,
             announcements, deleteAnnouncement, openEditAnnounceModal, editAnnounceModal, saveAnnounceEdit, postNow,

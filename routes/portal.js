@@ -4,33 +4,17 @@ const db = require('../db');
 const { authMiddleware } = require('./middleware');
 
 // GET /api/portal/me
-router.get('/me', async (req, res) => {
-    const sessionId = req.cookies['session_id'];
-    if (!sessionId) return res.status(401).json({ authenticated: false });
-
-    try {
-        const result = await db.query('SELECT user_id, username, avatar FROM user_sessions WHERE session_id = $1', [sessionId]);
-        if (result.rows.length === 0) return res.status(401).json({ authenticated: false });
-
-        res.json({
-            authenticated: true,
-            user: result.rows[0]
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+router.get('/me', authMiddleware, async (req, res) => {
+    res.json({
+        authenticated: true,
+        user: req.user
+    });
 });
 
 // GET /api/portal/licenses
-router.get('/licenses', async (req, res) => {
-    const sessionId = req.cookies['session_id'];
-    if (!sessionId) return res.status(401).json({ error: 'Unauthorized' });
-
+router.get('/licenses', authMiddleware, async (req, res) => {
     try {
-        const sessionRes = await db.query('SELECT user_id FROM user_sessions WHERE session_id = $1', [sessionId]);
-        if (sessionRes.rows.length === 0) return res.status(401).json({ error: 'Unauthorized' });
-        const userId = sessionRes.rows[0].user_id;
-
+        const userId = req.user.userId;
         const result = await db.query('SELECT * FROM subscriptions WHERE user_id = $1 ORDER BY updated_at DESC', [userId]);
         res.json(result.rows);
     } catch (err) {
@@ -39,18 +23,13 @@ router.get('/licenses', async (req, res) => {
 });
 
 // POST /api/portal/licenses/:guildId/toggle (S-2)
-router.post('/licenses/:guildId/toggle', async (req, res) => {
-    const sessionId = req.cookies['session_id'];
-    if (!sessionId) return res.status(401).json({ error: 'Unauthorized' });
-
+router.post('/licenses/:guildId/toggle', authMiddleware, async (req, res) => {
     const { guildId } = req.params;
     const { action } = req.body; // 'pause' or 'resume'
+    const userId = req.user.userId;
+    const username = req.user.username;
 
     try {
-        const sessionRes = await db.query('SELECT user_id, username FROM user_sessions WHERE session_id = $1', [sessionId]);
-        if (sessionRes.rows.length === 0) return res.status(401).json({ error: 'Unauthorized' });
-        const { user_id: userId, username } = sessionRes.rows[0];
-
         const subRes = await db.query('SELECT * FROM subscriptions WHERE guild_id = $1 AND user_id = $2', [guildId, userId]);
         if (subRes.rows.length === 0) return res.status(404).json({ error: 'Subscription not found or not yours' });
         const sub = subRes.rows[0];

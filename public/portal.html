@@ -269,7 +269,7 @@
             document.getElementById('portal-container').style.display = 'block';
             document.getElementById('user-name').innerText = currentUser.username;
             if (currentUser.avatar) {
-                document.getElementById('user-avatar').src = `https://cdn.discordapp.com/avatars/${currentUser.user_id}/${currentUser.avatar}.png`;
+                document.getElementById('user-avatar').src = `https://cdn.discordapp.com/avatars/${currentUser.userId}/${currentUser.avatar}.png`;
             } else {
                 document.getElementById('user-avatar').src = 'https://cdn.discordapp.com/embed/avatars/0.png';
             }
@@ -324,7 +324,7 @@
                         <div class="detail-item">
                             <span>ステータス</span>
                             <p class="status-tag ${statusClass}">
-                                <i class="bi ${isPaused ? 'bi-pause-circle' : 'bi-check-circle-fill'}"></i>
+                                <span style="font-size: 1.1rem; vertical-align: middle;">${isPaused ? '⏸️' : '✅'}</span>
                                 ${statusText}
                             </p>
                         </div>
@@ -341,16 +341,16 @@
                     <div class="actions">
                         ${isPaused ? 
                             `<button class="btn btn-primary" onclick="toggleLicense('${sub.guild_id}', 'resume')">
-                                <i class="bi bi-play-fill"></i> ライセンスを再開
+                                <span style="font-size: 1rem;">▶️</span> 再開する
                             </button>` : 
                             `<button class="btn btn-outline" onclick="toggleLicense('${sub.guild_id}', 'pause')">
-                                <i class="bi bi-pause-fill"></i> 一時停止する
+                                <span style="font-size: 1rem;">⏸️</span> 一時停止する
                             </button>`
                         }
                     </div>
                 </div>
             `;
-        }
+}
 
         async function toggleLicense(guildId, action) {
             const confirmed = confirm(action === 'pause' ? 
@@ -362,7 +362,10 @@
             try {
                 const res = await fetch(`/api/portal/licenses/${guildId}/toggle`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCookie('csrf_token')
+                    },
                     body: JSON.stringify({ action })
                 });
                 
@@ -380,6 +383,12 @@
         async function logout() {
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.reload();
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
         }
 
         init();

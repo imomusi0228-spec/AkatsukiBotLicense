@@ -562,4 +562,33 @@ router.delete('/:id/delete', authMiddleware, async (req, res) => {
     }
 });
 
+// GET /api/subscriptions/user/:userId/servers
+router.get('/user/:userId/servers', authMiddleware, async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const result = await db.query('SELECT * FROM subscriptions WHERE user_id = $1 ORDER BY expiry_date ASC', [userId]);
+        const subs = result.rows;
+
+        const client = req.app.discordClient;
+        if (client) {
+            const enrichedSubs = await Promise.all(subs.map(async sub => {
+                const sId = sub.guild_id;
+                let serverName = sub.cached_servername || sId;
+                try {
+                    if (sId && !sub.cached_servername) {
+                        const guild = client.guilds.cache.get(sId) || await client.guilds.fetch(sId).catch(() => null);
+                        if (guild) serverName = guild.name;
+                    }
+                } catch (e) { }
+                return { ...sub, server_name: serverName };
+            }));
+            res.json(enrichedSubs);
+        } else {
+            res.json(subs);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
