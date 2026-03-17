@@ -1567,7 +1567,7 @@
                                                 }">{{ srv.tier }}</span>
                                             </td>
                                             <td>
-                                                <div>{{ formatDate(srv.expiry_date) }}</div>
+                                                <div>{{ srv.tier === 'ULTIMATE' ? '無期限' : formatDate(srv.expiry_date) }}</div>
                                                 <div v-if="srv.expiry_date && srv.tier !== 'ULTIMATE'" class="extra-small mt-1" :class="getRemainingDays(srv.expiry_date) <= 7 ? 'text-warning' : 'text-muted'">
                                                     <span v-if="getRemainingDays(srv.expiry_date) > 0">残り {{ getRemainingDays(srv.expiry_date) }} 日</span>
                                                     <span v-else class="text-danger fw-bold">期限切れ</span>
