@@ -54,8 +54,7 @@ createApp({
             servers: []
         });
 
-        const importPreview = ref([]);
-        const isImporting = ref(false);
+
 
         // Auto Refresh
         const autoRefreshEnabled = ref(false);
@@ -887,59 +886,7 @@ createApp({
             });
         };
 
-        const handleCsvDrop = (e) => {
-            const file = e.dataTransfer.files[0];
-            if (file) processCsv(file);
-        };
 
-        const handleCsvSelect = (e) => {
-            const file = e.target.files[0];
-            if (file) processCsv(file);
-        };
-
-        const processCsv = (file) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result;
-                const rows = text.split('\n');
-                const header = rows[0].split(',');
-                const orderIdx = header.findIndex(h => h.includes('注文番号') || h.includes('Order ID'));
-                const prodIdx = header.findIndex(h => h.includes('商品名') || h.includes('Product'));
-
-                const results = [];
-                for (let i = 1; i < rows.length; i++) {
-                    const cols = rows[i].split(',');
-                    if (cols.length < 2) continue;
-
-                    const orderId = cols[orderIdx]?.replace(/"/g, '').trim();
-                    const prodName = cols[prodIdx]?.replace(/"/g, '').trim() || '';
-
-                    if (orderId) {
-                        results.push({
-                            order_id: orderId,
-                            tier: prodName.includes('Pro+') ? 'Pro+' : 'Pro',
-                            duration: prodName.includes('年') || prodName.includes('Year') ? 12 : 1
-                        });
-                    }
-                }
-                importPreview.value = results;
-            };
-            reader.readAsText(file);
-        };
-
-        const executeImport = async () => {
-            isImporting.value = true;
-            try {
-                const res = await api('/import/booth', 'POST', { data: importPreview.value });
-                if (res) {
-                    alert(`インポート完了！\n成功: ${res.imported}件\nスキップ: ${res.skipped}件`);
-                    importPreview.value = [];
-                    loadData();
-                }
-            } finally {
-                isImporting.value = false;
-            }
-        };
 
         const initGrowthChart = () => {
             const canvas = document.getElementById('growthChart');
@@ -1012,7 +959,7 @@ createApp({
         onMounted(() => {
             // Check for tab in hash (e.g., #apps)
             const hash = window.location.hash.replace('#', '');
-            const validTabs = ['dashboard', 'apps', 'stats', 'logs', 'settings', 'announce', 'blacklist', 'import'];
+            const validTabs = ['dashboard', 'apps', 'stats', 'logs', 'settings', 'announce', 'blacklist'];
             if (hash && validTabs.includes(hash)) {
                 activeTab.value = hash;
             }
@@ -1192,7 +1139,7 @@ createApp({
             announcements, deleteAnnouncement, openEditAnnounceModal, editAnnounceModal, saveAnnounceEdit, postNow,
             applyTemplate, fetchBotVersion, insertText,
             systemStatus, isBackingUp, formatDuration, triggerBackup,
-            blacklist, removeFromBlacklist, openBlacklistModal, handleCsvDrop, handleCsvSelect, executeImport, importPreview, isImporting,
+            blacklist, removeFromBlacklist, openBlacklistModal,
             roleMappings, fetchRoleMappings, saveRoleMapping, addRoleMapping, deleteRoleMapping,
             staffList, fetchStaff, updateStaffRole, addStaff, removeStaff,
             currentUserRole,

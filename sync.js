@@ -6,7 +6,8 @@ const ENV_ROLES = {
     'ProMonthly': (process.env.ROLE_PRO_MONTHLY || '').trim(),
     'ProYearly': (process.env.ROLE_PRO_YEARLY || '').trim(),
     'ProPlusMonthly': (process.env.ROLE_PRO_PLUS_MONTHLY || '').trim(),
-    'ProPlusYearly': (process.env.ROLE_PRO_PLUS_YEARLY || '').trim()
+    'ProPlusYearly': (process.env.ROLE_PRO_PLUS_YEARLY || '').trim(),
+    'Ultimate': (process.env.ROLE_ULTIMATE_ID || '').trim()
 };
 
 async function getDynamicRoles() {
@@ -27,7 +28,8 @@ async function getDynamicRoles() {
 
 const TIER_GROUPS = {
     PRO: ['Pro', '1', '2', 'Trial Pro'],
-    PRO_PLUS: ['Pro+', '3', '4', 'Trial Pro+', 'ULTIMATE']
+    PRO_PLUS: ['Pro+', '3', '4', 'Trial Pro+'],
+    ULTIMATE: ['ULTIMATE']
 };
 
 async function updateMemberRoles(guild, userId, tier) {
@@ -46,7 +48,9 @@ async function updateMemberRoles(guild, userId, tier) {
         ].filter(id => id);
 
         let rolesToAdd = [];
-        if (TIER_GROUPS.PRO_PLUS.includes(tier)) {
+        if (TIER_GROUPS.ULTIMATE.includes(tier)) {
+            rolesToAdd = [ROLES['Ultimate'], ROLES['Pro+'], ROLES['ProPlusMonthly'], ROLES['ProPlusYearly']].filter(id => id);
+        } else if (TIER_GROUPS.PRO_PLUS.includes(tier)) {
             rolesToAdd = [ROLES['Pro+'], ROLES['ProPlusMonthly'], ROLES['ProPlusYearly']].filter(id => id);
         } else if (TIER_GROUPS.PRO.includes(tier)) {
             rolesToAdd = [ROLES['Pro'], ROLES['ProMonthly'], ROLES['ProYearly']].filter(id => id);
@@ -103,7 +107,9 @@ async function syncSubscriptions(client, targetUserId = null) {
 
     for (const [memberId, member] of members) {
         let tier = 'Free';
-        if (member.roles.cache.has(ROLES['Pro+']) || member.roles.cache.has(ROLES['ProPlusYearly']) || member.roles.cache.has(ROLES['ProPlusMonthly'])) {
+        if (member.roles.cache.has(ROLES['Ultimate'])) {
+            tier = 'ULTIMATE';
+        } else if (member.roles.cache.has(ROLES['Pro+']) || member.roles.cache.has(ROLES['ProPlusYearly']) || member.roles.cache.has(ROLES['ProPlusMonthly'])) {
             tier = 'Pro+';
         } else if (member.roles.cache.has(ROLES['Pro']) || member.roles.cache.has(ROLES['ProYearly']) || member.roles.cache.has(ROLES['ProMonthly'])) {
             tier = 'Pro';
@@ -118,9 +124,10 @@ async function syncSubscriptions(client, targetUserId = null) {
                     for (const row of res.rows) {
                         const currentTier = String(row.tier || '');
                         
+                        const isUltimateMatch = TIER_GROUPS.ULTIMATE.includes(tier) && TIER_GROUPS.ULTIMATE.includes(currentTier);
                         const isProPlusMatch = TIER_GROUPS.PRO_PLUS.includes(tier) && TIER_GROUPS.PRO_PLUS.includes(currentTier);
                         const isProMatch = TIER_GROUPS.PRO.includes(tier) && TIER_GROUPS.PRO.includes(currentTier);
-                        const isMatch = isProPlusMatch || isProMatch;
+                        const isMatch = isUltimateMatch || isProPlusMatch || isProMatch;
 
                         const needsNameUpdate = row.cached_username !== userName;
 

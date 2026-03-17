@@ -83,6 +83,18 @@ router.post('/:id/approve', authMiddleware, async (req, res) => {
     try {
         const operatorId = req.user?.userId || 'Unknown';
         const operatorName = req.user?.username || 'Unknown';
+        const isAdmin = req.user?.role === 'admin';
+
+        // Security Alert for non-admin manual approval
+        if (!isAdmin && operatorId !== 'SYSTEM_AUTO') {
+            const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
+            const { sendWebhookNotification } = require('../services/notif');
+            await sendWebhookNotification({
+                title: '⚠️ 【非管理者操作】承認実行',
+                description: `管理権限のないユーザーが承認操作を実行しました。\n**担当者:** ${operatorName} (\`${operatorId}\`)\n**対象ID:** \`${id}\`\n\n[管理画面を見る](${dashboardUrl})`,
+                color: 0xffa500
+            });
+        }
 
         const client = req.app.discordClient;
         const result = await approveApplication(id, operatorId, operatorName, false, client);
@@ -114,12 +126,13 @@ router.post('/:id/reject', authMiddleware, async (req, res) => {
         `, [operatorId, operatorName, id, targetDesc]);
 
         // Notify
+        const isAdmin = req.user?.role === 'admin';
         const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
         await sendWebhookNotification({
-            title: 'Application Rejected',
-            description: `**Author:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[**管理画面で確認する**](${dashboardUrl})`,
-            color: 0xe74c3c,
-            fields: [{ name: 'Operator', value: operatorName, inline: true }]
+            title: isAdmin ? '🚫 【不受理】いたしました' : '⚠️ 【非管理者操作】不受理',
+            description: `**対象者:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[管理画面を見る](${dashboardUrl})`,
+            color: isAdmin ? 0xe74c3c : 0xffa500,
+            fields: [{ name: '担当者', value: operatorName, inline: true }]
         });
 
         res.json({ success: true });
@@ -149,12 +162,13 @@ router.post('/:id/hold', authMiddleware, async (req, res) => {
         `, [operatorId, operatorName, id, targetDesc]);
 
         // Notify
+        const isAdmin = req.user?.role === 'admin';
         const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
         await sendWebhookNotification({
-            title: 'Application Put on Hold',
-            description: `**Author:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[**管理画面で確認する**](${dashboardUrl})`,
-            color: 0xf1c40f,
-            fields: [{ name: 'Operator', value: operatorName, inline: true }]
+            title: isAdmin ? '⏳ 【保留】にいたしました' : '⚠️ 【非管理者操作】保留',
+            description: `**対象者:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[管理画面を見る](${dashboardUrl})`,
+            color: isAdmin ? 0xf1c40f : 0xffa500,
+            fields: [{ name: '担当者', value: operatorName, inline: true }]
         });
 
         res.json({ success: true });
@@ -184,12 +198,13 @@ router.post('/:id/cancel', authMiddleware, async (req, res) => {
         `, [operatorId, operatorName, id, targetDesc]);
 
         // Notify
+        const isAdmin = req.user?.role === 'admin';
         const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
         await sendWebhookNotification({
-            title: 'Application Cancelled',
-            description: `**Author:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[**管理画面で確認する**](${dashboardUrl})`,
-            color: 0x95a5a6,
-            fields: [{ name: 'Operator', value: operatorName, inline: true }]
+            title: isAdmin ? '✖️ 【取消】いたしました' : '⚠️ 【非管理者操作】取消',
+            description: `**対象者:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[管理画面を見る](${dashboardUrl})`,
+            color: isAdmin ? 0x95a5a6 : 0xffa500,
+            fields: [{ name: '担当者', value: operatorName, inline: true }]
         });
 
         res.json({ success: true });
@@ -212,6 +227,18 @@ router.delete('/:id', authMiddleware, async (req, res) => {
         // Log
         const operatorId = req.user?.userId || 'Unknown';
         const operatorName = req.user?.username || 'Unknown';
+        const isAdmin = req.user?.role === 'admin';
+
+        // Security Alert for non-admin delete
+        if (!isAdmin) {
+            const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
+            await require('../services/notif').sendWebhookNotification({
+                title: '⚠️ 【非管理者操作】レコード削除',
+                description: `管理権限のないユーザーが申請レコードの削除を実行しました。\n**担当者:** ${operatorName} (\`${operatorId}\`)\n**対象者:** ${app.author_name}\n\n[管理画面を見る](${dashboardUrl})`,
+                color: 0xffa500
+            });
+        }
+
         const targetDesc = `${app.author_name} (${app.parsed_booth_name})`;
         await db.query(`
             INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details)
@@ -263,7 +290,16 @@ router.post('/:id/reissue', authMiddleware, async (req, res) => {
             VALUES ($1, $2, $3, $4, 'REISSUE_KEY', $5)
         `, [operatorId, operatorName, id, `${app.author_name} (${app.parsed_booth_name})`, `Reissued key: ${newKey}`]);
 
-        // 5. Send DM
+        // 5. Send DM and Notify Webhook
+        const isAdmin = req.user?.role === 'admin';
+        const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
+        await sendWebhookNotification({
+            title: isAdmin ? '🔑 【再発行】いたしました' : '⚠️ 【非管理者操作】再発行',
+            description: `**対象者:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n**新キー:** \`${newKey}\`\n\n[管理画面を見る](${dashboardUrl})`,
+            color: isAdmin ? 0x9b59b6 : 0xffa500,
+            fields: [{ name: '担当者', value: operatorName, inline: true }]
+        });
+
         const client = req.app.discordClient;
         if (client && app.author_id) {
             try {

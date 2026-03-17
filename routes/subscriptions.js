@@ -98,8 +98,8 @@ router.get('/stats', authMiddleware, async (req, res) => {
             renewed_this_month: 0
         };
 
-        // Total Active Count (All active licenses excluding Free)
-        const totalRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE AND tier NOT IN ('Free', '0')");
+        // Total Active Count (Including Free for total reach visibility)
+        const totalRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE");
         stats.total_count = parseInt(totalRes.rows[0].count);
 
         // Paid Count (Only Monthly/Yearly members: Pro, Pro+. Excluding Trials, Free, and ULTIMATE)
@@ -156,8 +156,8 @@ router.get('/stats/detailed', authMiddleware, async (req, res) => {
             top_commands: []
         };
 
-        // All active subscriptions for distribution
-        const activeRes = await db.query("SELECT tier, COUNT(*) FROM subscriptions WHERE is_active = TRUE AND tier != 'ULTIMATE' GROUP BY tier");
+        // All active subscriptions for distribution (Including ULTIMATE for complete overview)
+        const activeRes = await db.query("SELECT tier, COUNT(*) FROM subscriptions WHERE is_active = TRUE GROUP BY tier");
         activeRes.rows.forEach(row => {
             const tier = row.tier;
             const count = parseInt(row.count);
@@ -183,8 +183,7 @@ router.get('/stats/detailed', authMiddleware, async (req, res) => {
                 TO_CHAR(COALESCE(start_date, created_at, NOW()), 'YYYY-MM') as month,
                 COUNT(*) as count
             FROM subscriptions 
-            WHERE tier IN ('Pro', 'Pro+', '1', '3')
-            AND tier != 'ULTIMATE'
+            WHERE is_active = TRUE
             AND COALESCE(start_date, created_at, NOW()) >= NOW() - INTERVAL '6 months'
             GROUP BY month
             ORDER BY month ASC

@@ -35,7 +35,8 @@ const publicCommands = [
                     {name: 'Trial Pro (無料お試し)', value: 'Trial Pro'},
                     {name: 'Trial Pro+ (無料お試し)', value: 'Trial Pro+'},
                     {name: 'Pro', value: 'Pro'},
-                    {name: 'Pro+', value: 'Pro+'}
+                    {name: 'Pro+', value: 'Pro+'},
+                    {name: 'ULTIMATE (永久)', value: 'ULTIMATE'}
                 ))
 ];
 

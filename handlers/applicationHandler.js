@@ -35,7 +35,7 @@ function parseApplication(content) {
     const boothMatch = content.match(/購入者名[(（]BOOTH[)）][:：]\s*(.+)/);
     const userMatch = content.match(/ユーザーID[:：]\s*(\d+)/);
     const serverMatch = content.match(/サーバーID[:：]\s*(\d+)/);
-    const tierMatch = content.match(/希望プラン[(（]Pro\s*[\/\s]*Pro\+[)）][:：]\s*((?:Trial\s+)?Pro\+?)/i);
+    const tierMatch = content.match(/希望プラン[(（]Pro\s*[\/\s]*Pro\+\s*[\/\s]*ULTIMATE[)）][:：]\s*((?:Trial\s+)?Pro\+?|ULTIMATE)/i);
 
     if (!userMatch || !serverMatch || !tierMatch) return null;
 
@@ -45,6 +45,7 @@ function parseApplication(content) {
     else if (rawTier.toLowerCase() === 'pro+') tier = 'Pro+';
     else if (rawTier.toLowerCase() === 'trial pro') tier = 'Trial Pro';
     else if (rawTier.toLowerCase() === 'trial pro+') tier = 'Trial Pro+';
+    else if (rawTier.toLowerCase() === 'ultimate') tier = 'ULTIMATE';
 
     return {
         boothName: boothMatch ? boothMatch[1].trim() : 'Unknown',
@@ -68,6 +69,7 @@ async function handleApplicationModal(interaction) {
     else if (tierRaw.toLowerCase() === 'pro+') tier = 'Pro+';
     else if (tierRaw.toLowerCase() === 'trial pro') tier = 'Trial Pro';
     else if (tierRaw.toLowerCase() === 'trial pro+') tier = 'Trial Pro+';
+    else if (tierRaw.toLowerCase() === 'ultimate') tier = 'ULTIMATE';
 
     try {
         const result = await saveApplication({
@@ -86,7 +88,9 @@ async function handleApplicationModal(interaction) {
 
         let replyMsg = '✅ **申請を受け付けました！**\n内容を精査し、不備がなければライセンスを発行いたします。';
         if (result.auto_processed) {
-            replyMsg = '⚡ **トライアルを自動発行しました！**\nライセンスキーをWebhookで送信しましたので、ご確認ください。';
+            replyMsg = result.tier === 'ULTIMATE' 
+                ? '⚡ **ULTIMATEライセンスを自動有効化しました！**\nお嬢様、永久ライセンスのご利用ありがとうございます！'
+                : '⚡ **自動発行・承認が完了しました！**\nライセンスキーをWebhookまたはDMで送信しましたので、ご確認ください。';
         } else if (result.auto_rejected) {
             replyMsg = '⚠️ **トライアルは既に利用済みです**\nトライアルは1回限りの提供となっております。引き続きご利用いただく場合は、有料プランをご検討ください。';
         }

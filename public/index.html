@@ -325,10 +325,7 @@
                         <button class="nav-link" :class="{ active: activeTab === 'blacklist' }"
                             @click="activeTab = 'blacklist'">ブラックリスト</button>
                     </li>
-                    <li class="nav-item">
-                        <button class="nav-link" :class="{ active: activeTab === 'import' }"
-                            @click="activeTab = 'import'">インポート</button>
-                    </li>
+
 
                 </ul>
 
@@ -811,54 +808,7 @@
             </div>
 
 
-            <!-- Tab Content: Import -->
 
-            <div v-if="activeTab === 'import'" class="px-3">
-                <div class="panel p-4" style="max-width: 800px; margin: 0 auto;">
-                    <h4 class="mb-4"><i class="bi bi-file-earmark-arrow-up me-2"></i>BOOTHデータインポート</h4>
-                    <div class="alert alert-info border-0 rounded-4 p-3 mb-4">
-                        <i class="bi bi-info-circle me-2"></i>
-                        BOOTHからダウンロードした「注文リストCSV」をそのままアップロードできるよ。
-                        注文番号が自動的にライセンスキーとして登録されるから、手動で発行する手間が省けるね。
-                    </div>
-
-                    <div class="mb-4 p-5 border border-dashed border-secondary rounded-4 text-center" @dragover.prevent
-                        @drop.prevent="handleCsvDrop"
-                        style="border-style: dashed !important; background: rgba(255,255,255,0.02);">
-                        <i class="bi bi-cloud-upload display-1 text-accent mb-3"></i>
-                        <h5>ここにCSVファイルをドラッグ＆ドロップ</h5>
-                        <p class="text-muted">または下のボタンから選択してね</p>
-                        <input type="file" id="csvFile" class="d-none" accept=".csv" @change="handleCsvSelect">
-                        <label for="csvFile" class="btn btn-outline-accent">ファイルを選択</label>
-                    </div>
-
-                    <div v-if="importPreview.length > 0" class="mt-4">
-                        <h6>インポートプレビュー (先頭3件)</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-dark">
-                                <thead>
-                                    <tr>
-                                        <th>注文番号</th>
-                                        <th>ティア</th>
-                                        <th>期間</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(row, idx) in importPreview.slice(0, 3)" :key="idx">
-                                        <td>{{ row.order_id }}</td>
-                                        <td>{{ row.tier }}</td>
-                                        <td>{{ row.duration }}ヶ月</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <button class="btn btn-primary w-100 mt-2" @click="executeImport" :disabled="isImporting">
-                            <span v-if="isImporting" class="spinner-border spinner-border-sm me-2"></span>
-                            {{ importPreview.length }} 件のデータを登録実行
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <!-- Tab Content: Settings -->
             <div v-if="activeTab === 'settings'" class="px-3">

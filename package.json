@@ -7,9 +7,12 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node src/index.js",
+    "legacy:start": "node index.js",
     "maintenance": "node scripts/maintenance.js",
-    "register-commands": "node scripts/register-commands.js"
+    "register-commands": "node scripts/register-commands.js",
+    "deploy:commands": "node src/bot/deploy-commands.js",
+    "db:init": "node scripts/run-init-sql.js"
   },
   "keywords": [],
   "author": "",
@@ -17,12 +20,19 @@
   "dependencies": {
     "axios": "^1.13.5",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.13",
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
+    "imap": "^0.8.19",
+    "mailparser": "^3.7.1",
     "node-cron": "^4.2.1",
-    "pg": "^8.18.0"
+    "pg": "^8.18.0",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "zod": "^3.24.1"
   }
 }

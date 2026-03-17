@@ -1,6 +1,7 @@
 const db = require('../db');
 const { sendWebhookNotification } = require('./notif');
 const crypto = require('crypto');
+const { normalizeOrderNumber } = require('../src/utils/normalize');
 const TRIAL_TIERS = ['Trial Pro', 'Trial Pro+'];
 
 /**
@@ -34,9 +35,11 @@ async function saveApplication(appData, client = null) {
         guildId,
         tier,
         boothName,
-        boothOrderId,   // S-3: Booth注文番号
+        boothOrderId: boothOrderIdRaw,   // S-3: Booth注文番号
         sourceType // 'message' or 'modal'
     } = appData;
+
+    const boothOrderId = normalizeOrderNumber(boothOrderIdRaw);
 
     try {
         // Check for existing application by same user and guild
@@ -102,15 +105,9 @@ async function saveApplication(appData, client = null) {
         // Notify admins via webhook
         const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
         await sendWebhookNotification({
-            title: `📝 新規ライセンス申請 (${sourceType === 'modal' ? 'モーダル' : 'メッセージ'})`,
-            description: `新しいライセンス申請が届きました。\n\n[**管理画面で確認する**](${dashboardUrl})`,
-            color: 0x00ff00,
-            fields: [
-                { name: '申請者', value: `${authorName} (${authorId})`, inline: true },
-                { name: '希望プラン', value: tier, inline: true },
-                { name: 'サーバーID', value: `\`${guildId}\``, inline: true },
-                { name: 'Booth名', value: boothName, inline: true }
-            ]
+            title: '📩 【新規申請】届きました',
+            description: `**申請者:** ${authorName} (${authorId})\n**希望プラン:** ${tier}\n**サーバーID:** \`${guildId}\`\n**購入者名:** ${boothName}\n\n[管理画面を見る](${dashboardUrl})`,
+            color: 0x00ff00
         });
 
         // Check for Auto-Approval rules
@@ -134,11 +131,13 @@ async function saveApplication(appData, client = null) {
 
             if (existingSubs.length > 0) {
                 // Determine limits and highest tier
+                const normalizeTier = (t) => String(t || '').replace(/[\s\-_]/g, '').toUpperCase();
+                
                 const isProPlus = (t) => {
-                    const s = String(t || '').toLowerCase();
-                    return s === 'pro+' || s === '3' || s === '4' || s === 'trial pro+';
+                    const norm = normalizeTier(t);
+                    return norm === 'PRO+' || norm === 'PROPLUS' || norm === '3' || norm === '4' || norm === 'TRIALPRO+';
                 };
-                const isUltimate = (t) => String(t || '').toUpperCase() === 'ULTIMATE';
+                const isUltimate = (t) => normalizeTier(t) === 'ULTIMATE';
 
                 const hasUltimate = existingSubs.some(s => isUltimate(s.tier));
                 const hasProPlus = existingSubs.some(s => isProPlus(s.tier));
@@ -193,10 +192,53 @@ async function saveApplication(appData, client = null) {
                 autoProcessed = true;
             }
         } else {
-            // Check for Auto-Approval rules for Pro/Pro+
+            // --- NEW: Strict BOOTH Order Matching ---
+            if (boothOrderId) {
+                try {
+                    const orderRes = await db.query(
+                        "SELECT * FROM orders WHERE order_number_normalized = $1 AND used = FALSE",
+                        [boothOrderId]
+                    );
+                    if (orderRes.rows.length > 0) {
+                        const order = orderRes.rows[0];
+                        // Normalize names for comparison (remove spaces)
+                        const normalizeName = (n) => String(n || '').replace(/[\s\u3000]/g, '').toLowerCase();
+                        const cleanAppBoothName = normalizeName(boothName);
+                        const cleanOrderBuyerName = normalizeName(order.buyer_name);
+                        const cleanOrderRecipientName = normalizeName(order.gift_recipient);
+                        
+                        const normalizeTier = (t) => String(t || '').replace(/[\s\-_]/g, '').toUpperCase();
+                        
+                        // Check if Name matches either buyer or recipient, and Plan matches
+                        const nameMatch = (cleanAppBoothName === cleanOrderBuyerName) || 
+                                          (cleanOrderRecipientName && cleanAppBoothName === cleanOrderRecipientName);
+                        const planMatch = normalizeTier(tier) === normalizeTier(order.plan_type);
+
+                        if (nameMatch && planMatch) {
+                            console.log(`[AppService] Strict BOOTH matching success (Gift-aware) for App ID: ${resultId}. Auto-approving.`);
+                            
+                            // Mark order as used
+                            await db.query(
+                                "UPDATE orders SET used = TRUE, used_by_discord_id = $1, used_at = NOW() WHERE id = $2",
+                                [userId, order.id]
+                            );
+
+                            await approveApplication(resultId, 'SYSTEM_AUTO', 'System (Strict BOOTH Matching)', true, client);
+                            await db.query('UPDATE applications SET auto_processed = TRUE WHERE id = $1', [resultId]);
+                            return { success: true, id: resultId, auto_processed: true, auto_rejected: false };
+                        } else {
+                            console.log(`[AppService] Strict BOOTH matching failed validation: NameMatch=${nameMatch}, PlanMatch=${planMatch}`);
+                        }
+                    }
+                } catch (orderMatchErr) {
+                    console.error('[AppService] Error during strict BOOTH matching:', orderMatchErr);
+                }
+            }
+
+            // Fallback: Check for Auto-Approval rules for Pro/Pro+ (Legacy/Custom rules)
             const ruleCheck = await checkAutoApproval(boothName, content, authorName);
             if (ruleCheck) {
-                console.log(`[AppService] Auto-approval triggered for App ID: ${resultId}`);
+                console.log(`[AppService] Auto-approval rule triggered for App ID: ${resultId}`);
                 await approveApplication(resultId, 'SYSTEM_AUTO', 'System (Auto Rule)', true, client);
                 await db.query('UPDATE applications SET auto_processed = TRUE WHERE id = $1', [resultId]);
                 autoProcessed = true;
@@ -340,10 +382,13 @@ async function approveApplication(appId, operatorId, operatorName, isAuto = fals
     // 6. Notify
     const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
     await sendWebhookNotification({
-        title: isAuto ? '🤖 Auto-Approval Triggered' : '✅ Application Approved',
-        description: `**Author:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n**Tier:** ${tier}\n**Generated Key:** \`${key}\`\n\n[**管理画面で確認する**](${dashboardUrl})`,
-        color: isAuto ? 0x3498db : 0x2ecc71,
-        fields: [{ name: 'Operator', value: operatorName, inline: true }]
+        title: '✅ 【受理】完了いたしました',
+        description: `**対象者:** ${app.author_name} (\`${app.author_id}\`)\n**プラン:** ${tier}\n**キー:** \`${key}\`\n\n[管理画面へ](${dashboardUrl})`,
+        color: 0x2ecc71, // Consistent green
+        fields: [
+            { name: '処理タイプ', value: isAuto ? '⚡ 自動承認' : '👤 手動承認', inline: true },
+            { name: '担当者', value: operatorName, inline: true }
+        ]
     });
 
     // 7. Send DM to User (A-3)
