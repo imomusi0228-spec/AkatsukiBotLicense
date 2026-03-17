@@ -352,7 +352,14 @@
                         <option value="expiring">期限間近</option>
                     </select>
 
-                    <div class="d-flex gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check form-switch p-0 m-0 d-flex align-items-center me-2" title="30秒ごとに自動更新">
+                            <label class="form-check-label me-2 extra-small text-muted text-uppercase fw-bold" style="letter-spacing: 0.5px;">Auto Refresh</label>
+                            <input class="form-check-input ms-0" type="checkbox" v-model="autoRefreshEnabled">
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary me-2" @click="loadData" title="即座に更新">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
                         <button class="btn btn-sm btn-outline-primary" @click="exportData('csv')" title="CSVで書き出し">
                             <i class="bi bi-download"></i> CSV
                         </button>
@@ -1539,6 +1546,7 @@
                                             <th class="ps-3">サーバー</th>
                                             <th>プラン</th>
                                             <th>期限</th>
+                                            <th>自動更新</th>
                                             <th>状態</th>
                                             <th class="text-end pe-3">操作</th>
                                         </tr>
@@ -1558,7 +1566,18 @@
                                                     'badge-tier-trial-pro-plus': srv.tier === 'Trial Pro+'
                                                 }">{{ srv.tier }}</span>
                                             </td>
-                                            <td>{{ formatDate(srv.expiry_date) }}</td>
+                                            <td>
+                                                <div>{{ formatDate(srv.expiry_date) }}</div>
+                                                <div v-if="srv.expiry_date && srv.tier !== 'ULTIMATE'" class="extra-small mt-1" :class="getRemainingDays(srv.expiry_date) <= 7 ? 'text-warning' : 'text-muted'">
+                                                    <span v-if="getRemainingDays(srv.expiry_date) > 0">残り {{ getRemainingDays(srv.expiry_date) }} 日</span>
+                                                    <span v-else class="text-danger fw-bold">期限切れ</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="form-check form-switch p-0 d-flex justify-content-center">
+                                                    <input class="form-check-input ms-0" type="checkbox" :checked="srv.auto_renew" @change="toggleAutoRenew(srv)" :disabled="srv.tier === 'ULTIMATE'">
+                                                </div>
+                                            </td>
                                             <td>
                                                 <span v-if="srv.is_active" class="text-success small fw-bold">稼働中</span>
                                                 <span v-else class="text-danger small fw-bold">停止中</span>

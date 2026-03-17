@@ -56,9 +56,20 @@ createApp({
 
         const importPreview = ref([]);
         const isImporting = ref(false);
+
+        // Auto Refresh
+        const autoRefreshEnabled = ref(false);
+        let refreshTimer = null;
+
         // Filters & Search
         const searchQuery = ref('');
         const filterStatus = ref('all'); // all, active, expired, expiring
+
+        const getRemainingDays = (dateStr) => {
+            if (!dateStr) return null;
+            const diff = new Date(dateStr) - new Date();
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        };
 
         // Modal State
         // ... (remaining modal state) ...
@@ -496,8 +507,14 @@ createApp({
         const toggleAutoRenew = async (sub) => {
             const newState = !sub.auto_renew;
             const gId = sub.guild_id;
-            await api(`/subscriptions/${gId}/auto-renew`, 'PATCH', { enabled: newState });
-            sub.auto_renew = newState;
+            try {
+                await api(`/subscriptions/${gId}/auto-renew`, 'PATCH', { enabled: newState });
+                sub.auto_renew = newState;
+                // If it's in the detail modal, it's already updated by reference
+            } catch (err) {
+                console.error('Failed to toggle auto renew:', err);
+                alert('自動更新の切り替えに失敗しました。');
+            }
         };
 
         const copyText = (text) => {
@@ -1009,6 +1026,19 @@ createApp({
                 }
             }, 5000);
 
+            // Auto Refresh Dashboard
+            watch(autoRefreshEnabled, (val) => {
+                if (val) {
+                    refreshTimer = setInterval(() => {
+                        if (activeTab.value === 'dashboard') {
+                            loadData();
+                        }
+                    }, 30000);
+                } else {
+                    if (refreshTimer) clearInterval(refreshTimer);
+                }
+            });
+
             window.addEventListener('keydown', handleKeydown);
         });
 
@@ -1156,6 +1186,7 @@ createApp({
             approveApp, reissueKey, deleteApp, openAppDetails, loginWithToken, logout,
             loadData, changePage, search, showOverallPie, showUserDetails, getUserServerCount, userDetail,
             deactivateSubFromDetail, resumeSubFromDetail,
+            autoRefreshEnabled, getRemainingDays,
             announceModal, sendAnnouncement, loadLogs, updateSetting, testWebhook,
             toggleSelectAll, bulkDeactivate,
             announcements, deleteAnnouncement, openEditAnnounceModal, editAnnounceModal, saveAnnounceEdit, postNow,
