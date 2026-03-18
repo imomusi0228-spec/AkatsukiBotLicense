@@ -67,43 +67,64 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 6px;
 }
 
-/* Tier Badges (All 6 classes required by index.html) */
+/* Tier Badges - Golden Selection by My Lady */
+.badge-tier-ultimate {
+    background-color: rgba(187, 154, 247, 0.2);
+    color: #bb9af7;
+    border: 1px solid #bb9af7;
+    box-shadow: 0 0 10px rgba(187, 154, 247, 0.3);
+    font-weight: 800;
+}
+
+.badge-tier-pro-plus {
+    background-color: rgba(255, 215, 0, 0.15); /* Premium Gold */
+    color: #ffd700;
+    border: 1px solid #ffd700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .badge-tier-pro {
-    background-color: rgba(122, 162, 247, 0.25);
+    background-color: rgba(122, 162, 247, 0.2); /* Blue */
     color: #7aa2f7;
     border: 1px solid #7aa2f7;
 }
 
-.badge-tier-pro-plus {
-    background-color: rgba(224, 175, 104, 0.25);
-    color: #e0af68;
-    border: 1px solid #e0af68;
+.badge-tier-trial-pro-plus {
+    background-color: rgba(255, 215, 0, 0.03) !important; /* Extremely Thin Gold */
+    color: rgba(255, 215, 0, 0.45) !important;
+    border: 1px dashed rgba(255, 215, 0, 0.3) !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
 }
 
-.badge-tier-ultimate {
-    background-color: rgba(187, 154, 247, 0.25);
-    color: #bb9af7;
-    border: 1px solid #bb9af7;
-    font-weight: 700;
+.badge-tier-trial-pro {
+    background-color: rgba(122, 162, 247, 0.03) !important; /* Extremely Thin Blue */
+    color: rgba(122, 162, 247, 0.45) !important;
+    border: 1px dotted rgba(122, 162, 247, 0.3) !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
 }
 
 .badge-tier-free {
-    background-color: rgba(86, 95, 137, 0.2);
+    background-color: rgba(86, 95, 137, 0.1);
     color: #565f89;
-    border: 1px solid var(--border);
+    border: 1px solid #414868;
 }
 
-/* Trial系（点線の枠） */
-.badge-tier-trial-pro {
-    background-color: rgba(122, 162, 247, 0.12);
-    color: #7aa2f7;
-    border: 1px dashed #7aa2f7;
+/* Interactive Elements */
+.user-link {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid transparent;
 }
 
-.badge-tier-trial-pro-plus {
-    background-color: rgba(224, 175, 104, 0.12);
-    color: #e0af68;
-    border: 1px dashed #e0af68;
+.user-link:hover {
+    color: var(--primary) !important;
+    border-bottom-color: var(--primary);
+    filter: brightness(1.2);
 }
 
 /* Stats Cards */

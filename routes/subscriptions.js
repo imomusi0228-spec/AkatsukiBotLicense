@@ -98,12 +98,12 @@ router.get('/stats', authMiddleware, async (req, res) => {
             renewed_this_month: 0
         };
 
-        // Total Active Count (Including Free for total reach visibility)
-        const totalRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE");
+        // Total Active Count (Unique Users)
+        const totalRes = await db.query("SELECT COUNT(DISTINCT user_id) FROM subscriptions WHERE is_active = TRUE");
         stats.total_count = parseInt(totalRes.rows[0].count);
 
-        // Paid Count (Only Monthly/Yearly members: Pro, Pro+. Excluding Trials, Free, and ULTIMATE)
-        const paidRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE AND tier IN ('Pro', 'Pro+', '1', '3')");
+        // Paid Count (Unique Users with Pro/Pro+)
+        const paidRes = await db.query("SELECT COUNT(DISTINCT user_id) FROM subscriptions WHERE is_active = TRUE AND tier IN ('Pro', 'Pro+', '1', '3')");
         stats.paid_count = parseInt(paidRes.rows[0].count);
 
         // Expiring Soon (within 7 days)
@@ -156,8 +156,8 @@ router.get('/stats/detailed', authMiddleware, async (req, res) => {
             top_commands: []
         };
 
-        // All active subscriptions for distribution (Including ULTIMATE for complete overview)
-        const activeRes = await db.query("SELECT tier, COUNT(*) FROM subscriptions WHERE is_active = TRUE GROUP BY tier");
+        // All active subscriptions for distribution (Unique Users per Tier)
+        const activeRes = await db.query("SELECT tier, COUNT(DISTINCT user_id) as count FROM subscriptions WHERE is_active = TRUE GROUP BY tier");
         activeRes.rows.forEach(row => {
             const tier = row.tier;
             const count = parseInt(row.count);
@@ -170,9 +170,9 @@ router.get('/stats/detailed', authMiddleware, async (req, res) => {
             }
         });
 
-        // Retention Rate (Paid only: Active Pro/Pro+ / Total ever Pro/Pro+)
-        const totalPaidRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE tier IN ('Pro', 'Pro+', '1', '3') AND tier != 'ULTIMATE'");
-        const activePaidRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE AND tier IN ('Pro', 'Pro+', '1', '3') AND tier != 'ULTIMATE'");
+        // Retention Rate (Unique Paid Users)
+        const totalPaidRes = await db.query("SELECT COUNT(DISTINCT user_id) FROM subscriptions WHERE tier IN ('Pro', 'Pro+', '1', '3') AND tier != 'ULTIMATE'");
+        const activePaidRes = await db.query("SELECT COUNT(DISTINCT user_id) FROM subscriptions WHERE is_active = TRUE AND tier IN ('Pro', 'Pro+', '1', '3') AND tier != 'ULTIMATE'");
         const totalPaid = parseInt(totalPaidRes.rows[0].count);
         const activePaid = parseInt(activePaidRes.rows[0].count);
         stats.retention_rate = totalPaid > 0 ? Math.round((activePaid / totalPaid) * 100) : 0;
@@ -408,7 +408,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
             else if (unit === 'm') currentExpiry.setMonth(currentExpiry.getMonth() + amount);
             else if (unit === 'y') currentExpiry.setFullYear(currentExpiry.getFullYear() + amount);
 
-            await db.query('UPDATE subscriptions SET expiry_date = $1, is_active = TRUE, expiry_warning_sent = FALSE WHERE guild_id = $2', [currentExpiry, id]);
+            // CRITICAL SYNC: Update ALL servers for this user
+            await db.query('UPDATE subscriptions SET expiry_date = $1, is_active = TRUE, expiry_warning_sent = FALSE WHERE user_id = $2', [currentExpiry, subData.user_id]);
 
             // Log
             await db.query(`INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, metadata) VALUES ($1, $2, $3, $4, 'EXTEND', $5, $6)`,
@@ -432,14 +433,25 @@ router.put('/:id', authMiddleware, async (req, res) => {
             if (currentSub.rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
             const subData = currentSub.rows[0];
+            const userId = subData.user_id;
             const serverName = subData.cached_servername || id;
             const oldTier = subData.tier;
 
-            await db.query('UPDATE subscriptions SET tier = $1 WHERE guild_id = $2', [tier, id]);
+            // Update ALL servers for this user based on tier
+            let expiryUpdateSql = '';
+            if (tier === 'ULTIMATE') {
+                // If upgrading to ULTIMATE, clear expiry
+                expiryUpdateSql = ', expiry_date = NULL';
+            } else if (oldTier === 'ULTIMATE') {
+                // If downgrading from ULTIMATE, set a fallback expiry so it's not infinite
+                expiryUpdateSql = ", expiry_date = NOW() + INTERVAL '1 month'";
+            } // Otherwise maintain existing expiry dates
 
-            // Log
+            await db.query(`UPDATE subscriptions SET tier = $1 ${expiryUpdateSql} WHERE user_id = $2`, [tier, userId]);
+
+            // Log for the target user (applying to all their servers)
             await db.query(`INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, metadata) VALUES ($1, $2, $3, $4, 'UPDATE_TIER', $5, $6)`,
-                [operatorId, operatorName, id, serverName, `Changed to ${tier}`, JSON.stringify({ oldTier, newTier: tier })]);
+                [operatorId, operatorName, userId, serverName, `Changed User Tier to ${tier}`, JSON.stringify({ oldTier, newTier: tier, applied_to_all: true })]);
 
             // Notify
             await sendWebhookNotification({
@@ -454,34 +466,36 @@ router.put('/:id', authMiddleware, async (req, res) => {
                 if (guild) await updateMemberRoles(guild, subData.user_id, tier);
             }
         } else if (action === 'toggle_active') {
-            const currentSub = await db.query('SELECT cached_servername, tier, paused_at, paused_tier, expiry_date FROM subscriptions WHERE guild_id = $1', [id]);
+            const currentSub = await db.query('SELECT user_id, cached_servername, tier, paused_at, paused_tier, expiry_date FROM subscriptions WHERE guild_id = $1', [id]);
             if (currentSub.rows.length === 0) return res.status(404).json({ error: 'Not found' });
             const subData = currentSub.rows[0];
+            const userId = subData.user_id;
             const serverName = subData.cached_servername || id;
 
             if (!is_active) {
-                // 【停止処理】paused_atを記録、paused_tierに現在のtierを保存、tierをFreeに降格
+                // 【停止処理】当該ユーザーの全サーバーを一括停止
                 if (subData.paused_at) {
                     return res.status(400).json({ error: 'Already paused' });
                 }
                 await db.query(`
                     UPDATE subscriptions
                     SET is_active = FALSE, paused_at = NOW(), paused_tier = tier, tier = 'Free', updated_at = NOW()
-                    WHERE guild_id = $1
-                `, [id]);
+                    WHERE user_id = $1
+                `, [userId]);
             } else {
-                // 【再開処理】停止期間分を期限に加算、元のtierを復元
+                // 【再開処理】当該ユーザーの全サーバーを一括再開
                 let newExpiry = subData.expiry_date ? new Date(subData.expiry_date) : null;
                 if (subData.paused_at && newExpiry) {
                     const pausedMs = Date.now() - new Date(subData.paused_at).getTime();
                     newExpiry = new Date(newExpiry.getTime() + pausedMs);
                 }
                 const restoredTier = subData.paused_tier || subData.tier;
+
                 await db.query(`
                     UPDATE subscriptions
                     SET is_active = TRUE, paused_at = NULL, paused_tier = NULL, tier = $1, expiry_date = $2, updated_at = NOW()
-                    WHERE guild_id = $3
-                `, [restoredTier, newExpiry, id]);
+                    WHERE user_id = $3
+                `, [restoredTier, newExpiry, userId]);
             }
 
             // Log

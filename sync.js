@@ -120,10 +120,16 @@ async function syncSubscriptions(client, targetUserId = null) {
                 const res = await db.query('SELECT guild_id, tier, is_active, cached_username FROM subscriptions WHERE user_id = $1', [memberId]);
 
                 if (res.rows.length > 0) {
-                    const userName = member.user.globalName || member.user.username;
+                        const userName = member.user.globalName || member.user.username;
                     for (const row of res.rows) {
                         const currentTier = String(row.tier || '');
+                        const expiryDate = row.expiry_date ? new Date(row.expiry_date) : null;
+                        const now = new Date();
                         
+                        // Check if the subscription is truly eligible for activation/sync
+                        // ULTIMATE is always valid. For others, must not be in the past.
+                        const isExpired = currentTier !== 'ULTIMATE' && expiryDate && expiryDate < now;
+
                         const isUltimateMatch = TIER_GROUPS.ULTIMATE.includes(tier) && TIER_GROUPS.ULTIMATE.includes(currentTier);
                         const isProPlusMatch = TIER_GROUPS.PRO_PLUS.includes(tier) && TIER_GROUPS.PRO_PLUS.includes(currentTier);
                         const isProMatch = TIER_GROUPS.PRO.includes(tier) && TIER_GROUPS.PRO.includes(currentTier);
@@ -131,7 +137,9 @@ async function syncSubscriptions(client, targetUserId = null) {
 
                         const needsNameUpdate = row.cached_username !== userName;
 
-                        if (!isMatch || !row.is_active || needsNameUpdate) {
+                        // CRITICAL FIX: Only activate/sync if NOT expired. 
+                        // If it's expired, we DON'T want to set is_active = TRUE based on roles.
+                        if ((!isMatch || !row.is_active || needsNameUpdate) && !isExpired) {
                             try {
                                 const sId = row.guild_id;
 

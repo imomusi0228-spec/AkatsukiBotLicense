@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AkatsukiBot | 管理コンソール</title>
     <link href="lib/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <script src="lib/js/vue.global.js"></script>
@@ -270,25 +271,25 @@
             <div class="row g-3 mb-4 px-3">
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
-                        <div class="stat-value">{{ stats.paid_count }}<span class="text-muted" style="font-size:1.2rem;"> / {{ stats.total_count }}</span></div>
-                        <div class="stat-label">有料 / 全ライセンス数</div>
+                        <div class="stat-value"><i class="bi bi-people-fill me-2 opacity-50"></i>{{ stats.paid_count }}<span class="text-muted" style="font-size:1.2rem;"> / {{ stats.total_count }}</span></div>
+                        <div class="stat-label">有料 / 全ユーザー数</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
-                        <div class="stat-value text-warning">{{ stats.expiring_soon_count }}</div>
+                        <div class="stat-value text-warning"><i class="bi bi-clock-history me-2 opacity-50"></i>{{ stats.expiring_soon_count }}</div>
                         <div class="stat-label">7日以内に失効</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
-                        <div class="stat-value text-success">{{ stats.new_this_month }}</div>
+                        <div class="stat-value text-success"><i class="bi bi-person-plus-fill me-2 opacity-50"></i>{{ stats.new_this_month }}</div>
                         <div class="stat-label">今月の新規</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel stat-card text-center">
-                        <div class="stat-value text-info">{{ stats.renewed_this_month }}</div>
+                        <div class="stat-value text-info"><i class="bi bi-arrow-repeat me-2 opacity-50"></i>{{ stats.renewed_this_month }}</div>
                         <div class="stat-label">今月の更新</div>
                     </div>
                 </div>
@@ -392,13 +393,23 @@
                                         'badge-tier-trial-pro': sub.tier === 'Trial Pro',
                                         'badge-tier-trial-pro-plus': sub.tier === 'Trial Pro+'
                                     }">
+                                        <i v-if="sub.tier === 'ULTIMATE'" class="bi bi-gem me-1"></i>
+                                        <i v-else-if="sub.tier === 'Pro+'" class="bi bi-star-fill me-1"></i>
+                                        <i v-else-if="sub.tier === 'Pro'" class="bi bi-check-circle-fill me-1"></i>
+                                        <i v-else-if="sub.tier.startsWith('Trial')" class="bi bi-clock me-1"></i>
                                         {{ sub.tier }}
                                     </span>
                                 </td>
-                                <td>
-                                    <div>
-                                        <div class="small fw-bold text-nowrap">{{ sub.user_display_name }}</div>
-                                        <div class="text-muted extra-small">@{{ sub.user_handle }}</div>
+                                <td class="user-link" @click="openEditModal(sub)" title="ティアを変更する">
+                                    <div class="d-flex align-items-center">
+                                        <img v-if="sub.user_avatar" :src="`https://cdn.discordapp.com/avatars/${sub.user_id}/${sub.user_avatar}.png?size=32`" class="rounded-circle me-2" width="32" height="32" alt="Avatar">
+                                        <div v-else class="rounded-circle bg-secondary me-2 d-flex align-items-center justify-content-center text-white" style="width:32px; height:32px;">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="small fw-bold text-nowrap">{{ sub.user_display_name }}</div>
+                                            <div class="text-muted extra-small">@{{ sub.user_handle }}</div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
@@ -484,7 +495,12 @@
                                     'badge-tier-pro-plus': app.parsed_tier === 'Pro+',
                                     'badge-tier-ultimate': app.parsed_tier === 'ULTIMATE',
                                     'badge-tier-free': !['Pro', 'Pro+', 'Trial Pro', 'Trial Pro+', 'ULTIMATE'].includes(app.parsed_tier)
-                                }">{{ app.parsed_tier }}</span>
+                                }">
+                                    <i v-if="app.parsed_tier === 'ULTIMATE'" class="bi bi-gem me-1"></i>
+                                    <i v-else-if="app.parsed_tier === 'Pro+'" class="bi bi-star-fill me-1"></i>
+                                    <i v-else-if="app.parsed_tier === 'Pro'" class="bi bi-check-circle-fill me-1"></i>
+                                    <i v-else-if="app.parsed_tier && app.parsed_tier.startsWith('Trial')" class="bi bi-clock me-1"></i>
+                                    {{ app.parsed_tier }}</span>
                                 </td>
                                 <td>
                                     <div v-if="app.status === 'approved' && app.license_key">
@@ -1199,7 +1215,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">詳細編集: {{ editModal.data.guild_id }}</h5>
+                            <h5 class="modal-title">ユーザー ティア設定: {{ editModal.data.user_display_name || editModal.data.user_id }}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">

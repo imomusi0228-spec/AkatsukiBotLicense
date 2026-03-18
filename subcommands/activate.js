@@ -113,26 +113,22 @@ module.exports = async (interaction) => {
         const isCurrentServerRegistered = existingSubs.some(s => s.guild_id === guildId);
 
         if (!isCurrentServerRegistered) {
-            // Calculate cumulative limits based on all active subscriptions
-            let totalSlots = 0;
-            let isUserUltimate = isUltimate(tier);
-
-            // Tiers from existing subscriptions
+            // New Quota Logic: 1 User = 1 Tier = Fixed Slots
+            let effectiveTier = tier; // This is the tier from the key or highest existing
+            
+            // Check if any existing sub is better than the one being activated
             existingSubs.forEach(s => {
-                if (isUltimate(s.tier)) isUserUltimate = true;
-                else if (isProPlus(s.tier)) totalSlots += 3;
-                else totalSlots += 1;
+                if (isUltimate(s.tier)) effectiveTier = 'ULTIMATE';
+                else if (isProPlus(s.tier) && !isUltimate(effectiveTier)) effectiveTier = 'Pro+';
             });
 
-            // Add the tier currently being activated (from input key)
-            if (inputKey) {
-                if (isUltimate(tier)) isUserUltimate = true;
-                else if (isProPlus(tier)) totalSlots += 3;
-                else totalSlots += 1;
+            let maxLimit = 1; // Default for Pro
+            if (isUltimate(effectiveTier)) maxLimit = 999;
+            else if (isProPlus(effectiveTier)) maxLimit = 3;
+            else if (String(effectiveTier).startsWith('Trial')) {
+                // Trials are typically 1 slot unless specified otherwise
+                maxLimit = 1;
             }
-
-            let maxLimit = isUserUltimate ? 999 : totalSlots;
-            if (maxLimit === 0) maxLimit = 1; // Default fallback
 
             if (existingSubs.length >= maxLimit) {
                 return interaction.editReply({
@@ -167,6 +163,7 @@ module.exports = async (interaction) => {
             exp = furthestExp ? new Date(furthestExp) : null;
         }
 
+        // 2. Perform Upsert for the current server
         await db.query(`
             INSERT INTO subscriptions (guild_id, user_id, tier, expiry_date, is_active, updated_at)
             VALUES ($1, $2, $3, $4, TRUE, NOW())
@@ -176,9 +173,19 @@ module.exports = async (interaction) => {
                 expiry_date = EXCLUDED.expiry_date, 
                 is_active = TRUE,
                 updated_at = NOW()
-        `, [guildId, userId, tier, exp]).catch(err => {
-            console.error('[Activate] Insert failed:', err);
-            throw err;
+        `, [guildId, userId, tier, exp]);
+
+        // 3. CRITICAL SYNC: Update all other servers for this user to match results
+        // This ensures the user's tier and expiry are consistent across their fleet
+        await db.query(`
+            UPDATE subscriptions SET 
+                tier = $1, 
+                expiry_date = $2, 
+                is_active = TRUE, 
+                updated_at = NOW() 
+            WHERE user_id = $3
+        `, [tier, exp, userId]).catch(err => {
+            console.error('[Activate] Bulk update failed:', err);
         });
 
         if (usedKey) {

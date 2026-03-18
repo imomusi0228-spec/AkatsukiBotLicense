@@ -41,17 +41,13 @@ module.exports = async (interaction) => {
             [guildId]
         );
 
-        // 4. Role Sync (Optional but good)
+        // 4. Role Sync (Skip)
+        // In user-based model, we don't downgrade roles just because one server moved.
+        // The user still maintains their tier until expiry.
+        /* 
         const { updateMemberRoles } = require('../sync');
-        const SUPPORT_GUILD_ID = process.env.SUPPORT_GUILD_ID;
-        if (SUPPORT_GUILD_ID) {
-            try {
-                const supportGuild = await interaction.client.guilds.fetch(SUPPORT_GUILD_ID);
-                await updateMemberRoles(supportGuild, userId, 'Free'); // Standardize roles back to free
-            } catch (err) {
-                console.error('[Move] Role sync failed:', err);
-            }
-        }
+        ...
+        */
 
         await interaction.editReply('✅ このサーバーのライセンス登録を解除しました。\n新しいサーバーで `/activate` コマンドを実行してライセンスを再有効化してください。\n※引越しの統計としてカウントされました。');
 

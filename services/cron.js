@@ -73,22 +73,29 @@ function startCron(client) {
                 }
             }
 
-            // Process Expired Subscriptions
-            const expiredRes = await db.query("SELECT guild_id, user_id, tier, auto_renew FROM subscriptions WHERE is_active = TRUE AND expiry_date <= NOW() AND expiry_date IS NOT NULL");
+            // Process Expired Subscriptions (User-Based Sync)
+            const expiredRes = await db.query("SELECT DISTINCT user_id, tier, auto_renew FROM subscriptions WHERE is_active = TRUE AND expiry_date <= NOW() AND expiry_date IS NOT NULL");
             for (const sub of expiredRes.rows) {
+                const userId = sub.user_id;
+
                 if (sub.auto_renew) {
                     const newExpiry = new Date();
                     newExpiry.setMonth(newExpiry.getMonth() + 1);
-                    await db.query('UPDATE subscriptions SET expiry_date = $1, expiry_warning_sent = FALSE WHERE guild_id = $2', [newExpiry, sub.guild_id]);
+                    // Extend ALL servers for this user
+                    await db.query('UPDATE subscriptions SET expiry_date = $1, expiry_warning_sent = FALSE WHERE user_id = $2', [newExpiry, userId]);
+                    console.log(`[Cron] Auto-renewed all servers for User: ${userId}`);
                 } else {
-                    await db.query('UPDATE subscriptions SET tier = $1, is_active = TRUE, expiry_date = NULL, auto_renew = FALSE WHERE guild_id = $2', [String(TIER_VALUE_FREE), sub.guild_id]);
-                    const user = await client.users.fetch(sub.user_id).catch(() => null);
-                    if (user) await user.send(`【通知】サブスクリプションの有効期限が終了したため、サーバー (ID: ${sub.guild_id}) をFreeプランへ移行しました。`).catch(() => null);
+                    // Downgrade ALL servers for this user to Free
+                    await db.query('UPDATE subscriptions SET tier = $1, is_active = TRUE, expiry_date = NULL, auto_renew = FALSE WHERE user_id = $2', [String(TIER_VALUE_FREE), userId]);
+                    
+                    const user = await client.users.fetch(userId).catch(() => null);
+                    if (user) await user.send(`【重要】有効期限が終了したため、お使いの全てのサーバーをFreeプランへ移行いたしました。継続してご利用いただくには再度アクティベートをお願いいたします。`).catch(() => null);
 
                     if (process.env.SUPPORT_GUILD_ID) {
                         const supportGuild = await client.guilds.fetch(process.env.SUPPORT_GUILD_ID).catch(() => null);
-                        if (supportGuild) await updateMemberRoles(supportGuild, sub.user_id, 'Free');
+                        if (supportGuild) await updateMemberRoles(supportGuild, userId, 'Free');
                     }
+                    console.log(`[Cron] Expired all servers for User: ${userId}`);
                 }
             }
         } catch (err) { console.error('[Cron] Hourly Check Error:', err); }

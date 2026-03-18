@@ -83,27 +83,38 @@ createApp({
                     grouped[sub.user_id] = {
                         ...sub,
                         server_count: 0,
-                        all_subs: []
+                        all_subs: [],
+                        has_ultimate: false
                     };
                 }
                 grouped[sub.user_id].server_count++;
                 grouped[sub.user_id].all_subs.push(sub);
                 
-                const tierPriority = { 'ULTIMATE': 3, 'Pro+': 2, 'Pro': 1, 'Free': 0 };
-                const currentPriority = tierPriority[grouped[sub.user_id].tier] || 0;
-                const newPriority = tierPriority[sub.tier] || 0;
+                // Tier Priority System (High to Low)
+                const tierMap = {
+                    'ULTIMATE': 100,
+                    'Ultimate': 100,
+                    'Pro+': 50,
+                    'Pro Plus': 50,
+                    'Pro': 40,
+                    'Trial Pro+': 25,
+                    'Trial Pro': 20,
+                    'Free': 0
+                };
+
+                const currentTier = grouped[sub.user_id].tier;
+                const newTier = sub.tier;
                 
-                if (newPriority >= currentPriority) {
-                    grouped[sub.user_id].tier = sub.tier;
+                if (tierMap[newTier] > (tierMap[currentTier] || 0)) {
+                    grouped[sub.user_id].tier = newTier;
                 }
                 
-                // Expiry Date Logic: 
-                // If any sub is ULTIMATE, the representative expiry is null (Indefinite)
-                // Otherwise, show the latest expiry date among their subs
-                if (sub.tier === 'ULTIMATE') {
+                // Mark Ultimate status for expiry display logic
+                if (newTier && newTier.toUpperCase() === 'ULTIMATE') {
                     grouped[sub.user_id].has_ultimate = true;
                 }
                 
+                // Expiry Date Logic
                 if (grouped[sub.user_id].has_ultimate) {
                     grouped[sub.user_id].expiry_date = null;
                 } else if (!grouped[sub.user_id].expiry_date || (sub.expiry_date && new Date(sub.expiry_date) > new Date(grouped[sub.user_id].expiry_date))) {

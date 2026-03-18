@@ -305,7 +305,13 @@ async function approveApplication(appId, operatorId, operatorName, isAuto = fals
     let durationMonths = 1;
     let durationDays = null;
 
-    if (tier === 'ULTIMATE') {
+    if (tier === 'Trial Pro') {
+        durationMonths = 0;
+        durationDays = 14;
+    } else if (tier === 'Trial Pro+') {
+        durationMonths = 0;
+        durationDays = 7;
+    } else if (tier === 'ULTIMATE') {
         durationMonths = null;
         durationDays = null;
     } else if (isAuto) {
@@ -320,15 +326,6 @@ async function approveApplication(appId, operatorId, operatorName, isAuto = fals
             }
             durationMonths = rule.duration_months;
             durationDays = rule.duration_days;
-        }
-    } else {
-        // Default legacy logic for manual approval
-        if (tier === 'Trial Pro') {
-            durationMonths = 0;
-            durationDays = 14;
-        } else if (tier === 'Trial Pro+') {
-            durationMonths = 0;
-            durationDays = 7;
         }
     }
 
