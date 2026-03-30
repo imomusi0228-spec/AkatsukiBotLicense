@@ -45,6 +45,16 @@ module.exports = {
     ROLE_PROPLUS_ID: process.env.ROLE_PROPLUS_ID,
     ROLE_ULTIMATE_ID: process.env.ROLE_ULTIMATE_ID,
     
+    // Monthly/Yearly Roles
+    ROLE_PRO_MONTHLY: process.env.ROLE_PRO_MONTHLY,
+    ROLE_PRO_YEARLY: process.env.ROLE_PRO_YEARLY,
+    ROLE_PRO_PLUS_MONTHLY: process.env.ROLE_PRO_PLUS_MONTHLY,
+    ROLE_PRO_PLUS_YEARLY: process.env.ROLE_PRO_PLUS_YEARLY,
+    
+    // Trial Roles
+    ROLE_TRIAL_PRO: process.env.ROLE_TRIAL_PRO,
+    ROLE_TRIAL_PRO_PLUS: process.env.ROLE_TRIAL_PRO_PLUS,
+    
     // Auth / Admins
     ADMIN_DISCORD_IDS: (process.env.ADMIN_DISCORD_IDS || '')
         .split(',')

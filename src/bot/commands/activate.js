@@ -13,38 +13,33 @@ module.exports = {
         .setDescription('BOOTHの注文番号を使ってライセンスを有効化します')
         .addStringOption(option => 
             option.setName('order_number')
-                .setDescription('BOOTHの注文番号を入力してください')
-                .setRequired(true)),
+                .setDescription('BOOTHの注文番号（数字のみ）を入力してください')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('token')
+                .setDescription('DMで届いた「トークン」を入力してください')
+                .setRequired(false))
+        .addStringOption(option => 
+            option.setName('buyer_name')
+                .setDescription('トークンがない場合は、購入者名を入力してください')
+                .setRequired(false)),
 
     async execute(interaction) {
         const orderNumber = interaction.options.getString('order_number');
+        const token = interaction.options.getString('token');
+        const buyerName = interaction.options.getString('buyer_name');
         const discordId = interaction.user.id;
 
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            // 1. 注文情報の確認
-            const order = await getOrderByNumber(orderNumber);
+            // トランザクション内で一括処理（ロック、バリデーション、ライセンス発行、使用済みマーク）
+            const { activateOrderInTransaction } = require('../../services/orderService');
+            const { assignPlanRole } = require('../../services/roleService');
+            
+            const license = await activateOrderInTransaction({ orderNumber, token, buyerName, discordId });
 
-            if (!order) {
-                return await interaction.editReply('❌ 注文番号が見つかりません。入力内容をご確認いただくか、購入直後の場合は数分待ってから再度お試しください。');
-            }
-
-            if (order.used) {
-                return await interaction.editReply('⚠️ この注文番号はすでに使用済みです。');
-            }
-
-            // 2. ライセンスの発行
-            const license = await createLicenseFromOrder(order, discordId);
-
-            if (!license) {
-                throw new Error('License creation failed');
-            }
-
-            // 3. 注文を使用済みに更新
-            await markOrderUsed(order.id, discordId);
-
-            // 4. ロール付与
+            // 成功後のロール付与（Discord APIは外部通信のためトランザクション外で行う）
             const member = interaction.member;
             if (member) {
                 await assignPlanRole(member, license.plan_type);
@@ -66,7 +61,22 @@ module.exports = {
 
         } catch (error) {
             logger.error('[Bot] Activate command error:', error);
-            await interaction.editReply('❌ 申し訳ありません。ライセンスの発行中にエラーが発生しました。管理者にお問い合わせください。');
+            
+            let errorMessage = '❌ エラーが発生しました。管理者にお問い合わせください。';
+            
+            if (error.message === 'ORDER_NOT_FOUND') {
+                errorMessage = '❌ 注文番号が見つかりません。入力内容をご確認ください。';
+            } else if (error.message === 'TOKEN_MISMATCH') {
+                errorMessage = '❌ トークンが一致しません。DMで届いた正しいトークンを入力してください。\n\n💡 **トークンの再発行・照会はこちら:**\nhttps://akatsukibot-license.duckdns.org/lookup.html';
+            } else if (error.message === 'NAME_MISMATCH') {
+                errorMessage = '❌ 購入者名が一致しません。BOOTHの画面に表示されている名前を入力してください。';
+            } else if (error.message === 'VERIFICATION_REQUIRED') {
+                errorMessage = '❌ 照合情報が不足しています。トークンまたは購入者名のいずれかを入力してください。';
+            } else if (error.message === 'ORDER_ALREADY_USED') {
+                errorMessage = '⚠️ この注文番号はすでに使用済みです。';
+            }
+
+            await interaction.editReply(errorMessage);
         }
     },
 };

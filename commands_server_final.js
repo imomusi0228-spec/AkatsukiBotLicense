@@ -26,14 +26,9 @@ const publicCommands = [
     new SlashCommandBuilder()
         .setName('move')
         .setDescription('現在のサーバーのライセンスを解除し、別のサーバーへ移動する準備をします')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    new SlashCommandBuilder()
-        .setName('mylicense')
-        .setDescription('所有しているライセンスの一覧を表示します')
 ];
 
-const adminCommands = []; // お嬢の指示により、管理者コマンドはWeb側へ集約
-const commands = [...publicCommands, ...adminCommands];
+const commands = [...publicCommands];
 
 async function logCommandUsage(interaction) {
     if (!interaction.isChatInputCommand()) return;
@@ -64,7 +59,7 @@ async function handleInteraction(interaction) {
 
     if (!interaction.isChatInputCommand()) return;
 
-    if (['activate', 'portal', 'sync', 'move', 'mylicense'].includes(interaction.commandName)) {
+    if (['activate', 'portal', 'sync', 'move'].includes(interaction.commandName)) {
         try {
             await logCommandUsage(interaction);
             const commandHandler = require(`./subcommands/${interaction.commandName}`);
@@ -82,4 +77,4 @@ async function handleInteraction(interaction) {
     }
 }
 
-module.exports = { commands, publicCommands, adminCommands, handleInteraction };
+module.exports = { commands, handleInteraction };

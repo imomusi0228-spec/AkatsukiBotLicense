@@ -1,0 +1,32 @@
+{
+  "licenses": [
+    "expires_at",
+    "guild_id",
+    "notes",
+    "tier"
+  ],
+  "subscriptions": [
+    "is_active",
+    "current_milestone",
+    "auto_unlock_enabled",
+    "migration_count",
+    "last_migration_at",
+    "paused_at",
+    "auto_renew",
+    "start_date",
+    "valid_until",
+    "updated_at",
+    "expiry_warning_sent",
+    "created_at",
+    "expiry_date",
+    "user_handle",
+    "user_id",
+    "tier",
+    "notes",
+    "cached_username",
+    "cached_servername",
+    "paused_tier",
+    "user_avatar",
+    "guild_id"
+  ]
+}

@@ -24,11 +24,8 @@ function startCron(client) {
 
             if (dmEnabled) {
                 const getTierName = (t) => {
-                    if (t === '1' || t === 1) return 'Pro';
-                    if (t === '2' || t === 2) return 'Pro (Yearly)';
-                    if (t === '3' || t === 3) return 'Pro+';
-                    if (t === '4' || t === 4) return 'Pro+ (Yearly)';
-                    return t || 'Free';
+                    const planRes = Object.values(PLANS).find(p => p.id === t || p.displayName === t);
+                    return planRes ? planRes.displayName : t || 'Free';
                 };
 
                 const warningTargetsRes = await db.query(`
@@ -118,12 +115,12 @@ function startCron(client) {
         } catch (err) { console.error('[Cron] Announcement Error:', err); }
     });
 
-    // 3. Daily Update Check: 03:00
-    cron.schedule('0 3 * * *', async () => {
+    // 3. Weekly Update Announcement: Fridays at 19:00
+    cron.schedule('0 19 * * 5', async () => {
         try {
-            const { checkForUpdates } = require('./updates');
-            await checkForUpdates(client);
-        } catch (err) { console.error('[Cron] Update Check Error:', err); }
+            const { announceWeeklyUpdates } = require('./updates');
+            await announceWeeklyUpdates(client);
+        } catch (err) { console.error('[Cron] Weekly Update Error:', err); }
     });
 
     // 4. Monthly Statistics Report: 1st of month at 09:00
@@ -165,8 +162,11 @@ function startCron(client) {
             const revenueRes = await db.query(`
                 SELECT SUM(
                     CASE 
-                        WHEN tier = 'Pro' THEN 500
-                        WHEN tier = 'Pro+' THEN 1000
+                        WHEN tier IN ('Pro', 'PRO', 'TRIAL_PRO') THEN 500
+                        WHEN tier IN ('Pro+', 'PRO_PLUS', 'TRIAL_PRO_PLUS') THEN 1000
+                        WHEN tier = 'PRO_YEARLY' THEN 5500
+                        WHEN tier = 'PRO_PLUS_YEARLY' THEN 10000
+                        WHEN tier = 'ULTIMATE' THEN 15000
                         ELSE 0
                     END
                 ) as total FROM subscriptions WHERE created_at >= NOW() - INTERVAL '1 day'

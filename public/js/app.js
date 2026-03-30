@@ -294,15 +294,18 @@ createApp({
         };
 
         const addStaff = async () => {
-            const userId = prompt('追加するユーザーのDiscord IDを入力してください');
-            if (!userId) return;
-            const username = prompt('ユーザー名を入力してください (任意)', 'New Staff');
+            const idOrName = prompt('追加するユーザーの「Discord ID」または「ユーザー名」を入力してください');
+            if (!idOrName) return;
             const role = confirm('管理者に設定しますか？ (キャンセルでモデレーター)') ? 'admin' : 'moderator';
 
             try {
-                await api('/settings/staff', 'POST', { user_id: userId, username, role });
-                fetchStaff();
-                showAlert('スタッフを追加しました。', 'success');
+                const res = await api('/settings/staff', 'POST', { user_id: idOrName, role });
+                if (res.success) {
+                    fetchStaff();
+                    showAlert(`スタッフ「${res.username || idOrName}」を追加しました。`, 'success');
+                } else {
+                    showAlert('追加に失敗しました: ' + (res.error || '不明なエラー'), 'danger');
+                }
             } catch (err) {
                 showAlert('追加に失敗しました: ' + err.message, 'danger');
             }

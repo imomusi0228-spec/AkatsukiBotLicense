@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 
 // ルート登録
 app.use('/api/auth', authRoutes);
-app.use('/api/health', healthRoutes);
+app.use('/api', healthRoutes);
 
 // エラーハンドリング (最後に登録)
 app.use(errorHandler);
@@ -35,7 +35,7 @@ app.use(errorHandler);
  */
 const startApiServer = () => {
     return new Promise((resolve) => {
-        app.listen(API_PORT, () => {
+        app.listen(API_PORT, '0.0.0.0', () => {
             logger.info(`[API] Server is running on port ${API_PORT}`);
             resolve(app);
         });

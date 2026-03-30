@@ -1,8 +1,11 @@
-// filename: src/constants/roles.js
 const { 
     ROLE_FREE_ID, 
-    ROLE_PRO_ID, 
-    ROLE_PROPLUS_ID, 
+    ROLE_PRO_MONTHLY,
+    ROLE_PRO_YEARLY,
+    ROLE_PRO_PLUS_MONTHLY,
+    ROLE_PRO_PLUS_YEARLY,
+    ROLE_TRIAL_PRO,
+    ROLE_TRIAL_PRO_PLUS,
     ROLE_ULTIMATE_ID 
 } = require('../config/env');
 const { PLANS } = require('./plans');
@@ -12,8 +15,12 @@ const { PLANS } = require('./plans');
  */
 const PLAN_ROLE_MAP = {
     [PLANS.FREE.id]: ROLE_FREE_ID,
-    [PLANS.PRO.id]: ROLE_PRO_ID,
-    [PLANS.PRO_PLUS.id]: ROLE_PROPLUS_ID,
+    [PLANS.PRO.id]: ROLE_PRO_MONTHLY,
+    [PLANS.PRO_YEARLY.id]: ROLE_PRO_YEARLY,
+    [PLANS.PRO_PLUS.id]: ROLE_PRO_PLUS_MONTHLY,
+    [PLANS.PRO_PLUS_YEARLY.id]: ROLE_PRO_PLUS_YEARLY,
+    [PLANS.TRIAL_PRO.id]: ROLE_TRIAL_PRO,
+    [PLANS.TRIAL_PRO_PLUS.id]: ROLE_TRIAL_PRO_PLUS,
     [PLANS.ULTIMATE.id]: ROLE_ULTIMATE_ID,
 };
 

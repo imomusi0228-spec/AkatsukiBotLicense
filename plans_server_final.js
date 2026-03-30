@@ -15,18 +15,10 @@ const PLANS = {
     },
     PRO: {
         id: 'PRO',
-        displayName: "PRO (月額)",
+        displayName: "PRO",
         maxServers: 1,
         durationDays: 30,
-        roleEnvKey: "ROLE_PRO_MONTHLY",
-        priority: 2
-    },
-    PRO_YEARLY: {
-        id: 'PRO_YEARLY',
-        displayName: "PRO (年額)",
-        maxServers: 1,
-        durationDays: 365,
-        roleEnvKey: "ROLE_PRO_YEARLY",
+        roleEnvKey: "ROLE_PRO_ID",
         priority: 2
     },
     TRIAL_PRO: {
@@ -34,23 +26,15 @@ const PLANS = {
         displayName: "PRO (Trial/14d)",
         maxServers: 1,
         durationDays: 14,
-        roleEnvKey: "ROLE_TRIAL_PRO",
+        roleEnvKey: "ROLE_PRO_ID",
         priority: 2
     },
     PRO_PLUS: {
         id: 'PRO_PLUS',
-        displayName: "PRO_PLUS (月額)",
+        displayName: "PRO_PLUS",
         maxServers: 3,
         durationDays: 30,
-        roleEnvKey: "ROLE_PRO_PLUS_MONTHLY",
-        priority: 3
-    },
-    PRO_PLUS_YEARLY: {
-        id: 'PRO_PLUS_YEARLY',
-        displayName: "PRO_PLUS (年額)",
-        maxServers: 3,
-        durationDays: 365,
-        roleEnvKey: "ROLE_PRO_PLUS_YEARLY",
+        roleEnvKey: "ROLE_PROPLUS_ID",
         priority: 3
     },
     TRIAL_PRO_PLUS: {
@@ -58,7 +42,7 @@ const PLANS = {
         displayName: "PRO_PLUS (Trial/7d)",
         maxServers: 3,
         durationDays: 7,
-        roleEnvKey: "ROLE_TRIAL_PRO_PLUS",
+        roleEnvKey: "ROLE_PROPLUS_ID",
         priority: 3
     },
     ULTIMATE: {
@@ -79,8 +63,6 @@ const PRODUCT_MATCH_RULES = [
     { pattern: /Ultimate/i, planType: PLANS.ULTIMATE.id },
     { pattern: /(Trial|トライアル|試用).*(Pro\+|PRO\+)/i, planType: PLANS.TRIAL_PRO_PLUS.id },
     { pattern: /(Trial|トライアル|試用).*Pro/i, planType: PLANS.TRIAL_PRO.id },
-    { pattern: /(Pro\+|PRO\+).*(Yearly|年額|12ヶ月)/i, planType: PLANS.PRO_PLUS_YEARLY.id },
-    { pattern: /Pro.*(Yearly|年額|12ヶ月)/i, planType: PLANS.PRO_YEARLY.id },
     { pattern: /Pro\+/i, planType: PLANS.PRO_PLUS.id },
     { pattern: /PRO\+/i, planType: PLANS.PRO_PLUS.id },
     { pattern: /Pro/i, planType: PLANS.PRO.id },

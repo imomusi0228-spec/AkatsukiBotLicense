@@ -18,7 +18,7 @@ router.get('/', authMiddleware, async (req, res) => {
         let whereClause = [];
 
         if (search) {
-            whereClause.push('(guild_id ILIKE $1 OR user_id ILIKE $1 OR tier ILIKE $1 OR cached_username ILIKE $1 OR cached_servername ILIKE $1)');
+            whereClause.push('(guild_id ILIKE $1 OR user_id ILIKE $1 OR tier ILIKE $1 OR cached_username ILIKE $1 OR cached_servername ILIKE $1 OR user_handle ILIKE $1)');
             params.push(`%${search}%`);
         }
 
@@ -36,48 +36,86 @@ router.get('/', authMiddleware, async (req, res) => {
         const result = await db.query(queryText, params);
         const subs = result.rows;
 
-        // Fetch names from Discord (Optimized with Cache & Batching)
+        // Fetch names from Discord (Optimized: Use cache primarily, refresh in background)
         const client = req.app.discordClient;
         if (client) {
-            const enrichedSubs = await Promise.all(subs.map(async sub => {
+            const enrichedSubs = subs.map(sub => {
                 const sId = sub.guild_id;
+                const uId = sub.user_id;
+                
+                // 1. Initial values from DB cache
                 let serverName = sub.cached_servername || sId;
-                let userName = sub.cached_username || sub.user_id || 'Unknown User';
+                let userName = sub.cached_username || uId || 'Unknown User';
+                let userAvatarHash = sub.user_avatar; // If we add this column to DB
+                let userHandle = sub.user_handle;     // If we add this column to DB
 
-                let userAvatarHash = null;
-                let userHandle = null;
-
-                // Only fetch from API if not in cache OR name is missing
-                try {
-                    if (sId && !sub.cached_servername) {
-                        const guild = client.guilds.cache.get(sId) || await client.guilds.fetch(sId).catch(() => null);
-                        if (guild) serverName = guild.name;
-                    }
-
-                    if (sub.user_id && !sub.cached_username) {
-                        const user = client.users.cache.get(sub.user_id) || await client.users.fetch(sub.user_id).catch(() => null);
-                        if (user) {
-                            userName = user.globalName || user.username;
-                            userAvatarHash = user.avatar;
-                            userHandle = user.username;
+                // 2. Background Refresh (Don't await)
+                const refreshInBackground = async () => {
+                    try {
+                        let updated = false;
+                        
+                        // Server Name
+                        if (sId && !sub.cached_servername) {
+                            const guild = client.guilds.cache.get(sId) || await client.guilds.fetch(sId).catch(() => null);
+                            if (guild) {
+                                serverName = guild.name;
+                                updated = true;
+                            }
                         }
-                    } else if (sub.user_id) {
-                        // Already have username cached; try to get avatar from cache only (no extra API call)
-                        const cachedUser = client.users.cache.get(sub.user_id);
-                        if (cachedUser) {
-                            userAvatarHash = cachedUser.avatar;
-                            userHandle = cachedUser.username;
+
+                        // User Info
+                        if (uId) {
+                            // Try cache first
+                            let user = client.users.cache.get(uId);
+                            
+                            // If missing OR we want to force refresh sometimes, fetch it
+                            if (!user || !sub.cached_username) {
+                                user = await client.users.fetch(uId).catch(() => null);
+                            }
+
+                            if (user) {
+                                const newName = user.globalName || user.username;
+                                const newHandle = user.username;
+                                const newAvatar = user.avatar;
+
+                                if (newName !== sub.cached_username || newAvatar !== sub.user_avatar) {
+                                    userName = newName;
+                                    userHandle = newHandle;
+                                    userAvatarHash = newAvatar;
+                                    updated = true;
+                                }
+                            }
                         }
-                    }
 
-                    // Async background update for cache if it was empty, but don't await it
-                    if ((serverName !== sub.cached_servername || userName !== sub.cached_username) && sId) {
-                        db.query('UPDATE subscriptions SET cached_username = $1, cached_servername = $2 WHERE guild_id = $3', [userName, serverName, sId]).catch(() => { });
+                        if (updated) {
+                            // Update DB Cache
+                            await db.query(`
+                                UPDATE subscriptions 
+                                SET cached_username = $1, 
+                                    cached_servername = $2,
+                                    user_avatar = $3,
+                                    user_handle = $4,
+                                    updated_at = NOW()
+                                WHERE guild_id = $5 OR (user_id = $6 AND guild_id = $5)
+                            `, [userName, serverName, userAvatarHash, userHandle, sId, uId]).catch(() => { });
+                        }
+                    } catch (e) {
+                        console.error('[Refresh Cache Error]', e);
                     }
-                } catch (e) { }
+                };
 
-                return { ...sub, server_name: serverName, user_display_name: userName, user_avatar: userAvatarHash, user_handle: userHandle };
-            }));
+                // Trigger background refresh without awaiting
+                refreshInBackground();
+
+                // Return what we have (cached)
+                return { 
+                    ...sub, 
+                    server_name: serverName, 
+                    user_display_name: userName, 
+                    user_avatar: userAvatarHash, 
+                    user_handle: userHandle 
+                };
+            });
             res.json({ data: enrichedSubs, pagination: { total: totalCount, page, limit, pages: Math.ceil(totalCount / limit) } });
         } else {
             res.json({ data: subs, pagination: { total: totalCount, page, limit, pages: Math.ceil(totalCount / limit) } });

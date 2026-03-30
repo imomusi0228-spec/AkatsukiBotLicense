@@ -114,10 +114,55 @@ router.get('/staff', authMiddleware, async (req, res) => {
 
 // POST /api/settings/staff
 router.post('/staff', authMiddleware, async (req, res) => {
-    const { user_id, username, role } = req.body;
-    if (!user_id) return res.status(400).json({ error: 'User ID is required' });
+    let { user_id, username, role } = req.body;
+    const client = req.app.discordClient;
+
+    if (!user_id && !username) {
+        return res.status(400).json({ error: 'User ID or Username is required' });
+    }
 
     try {
+        // If user_id is missing or NOT numeric, try to resolve it from username
+        if (!user_id || !/^\d+$/.test(user_id)) {
+            const searchTerm = user_id || username;
+            console.log(`[Staff Lookup] Searching for user: ${searchTerm}`);
+            
+            if (client) {
+                // Try searching in the support guild first
+                const SUPPORT_GUILD_ID = process.env.SUPPORT_GUILD_ID;
+                let foundUser = null;
+
+                if (SUPPORT_GUILD_ID) {
+                    const guild = await client.guilds.fetch(SUPPORT_GUILD_ID).catch(() => null);
+                    if (guild) {
+                        const members = await guild.members.search({ query: searchTerm, limit: 1 }).catch(() => null);
+                        if (members && members.size > 0) {
+                            const member = members.first();
+                            foundUser = member.user;
+                        }
+                    }
+                }
+
+                // Fallback to global cache if not found in support guild
+                if (!foundUser) {
+                    foundUser = client.users.cache.find(u => 
+                        u.username.toLowerCase() === searchTerm.toLowerCase() || 
+                        (u.globalName && u.globalName.toLowerCase() === searchTerm.toLowerCase())
+                    );
+                }
+
+                if (foundUser) {
+                    user_id = foundUser.id;
+                    username = foundUser.globalName || foundUser.username;
+                    console.log(`[Staff Lookup] Resolved ${searchTerm} to ${user_id} (${username})`);
+                } else {
+                    return res.status(404).json({ error: `User "${searchTerm}" not found. Please use User ID instead.` });
+                }
+            } else {
+                return res.status(500).json({ error: 'Discord client not available for lookup' });
+            }
+        }
+
         await db.query(`
             INSERT INTO staff_permissions (user_id, username, role)
             VALUES ($1, $2, $3)
@@ -125,7 +170,8 @@ router.post('/staff', authMiddleware, async (req, res) => {
                 username = EXCLUDED.username,
                 role = EXCLUDED.role
         `, [user_id, username || 'Unknown', role || 'viewer']);
-        res.json({ success: true });
+        
+        res.json({ success: true, user_id, username });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

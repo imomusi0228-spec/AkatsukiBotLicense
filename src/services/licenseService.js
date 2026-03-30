@@ -10,10 +10,19 @@ const { isExpired } = require('../utils/date');
  * 注文情報を元にライセンスを新規作成する
  */
 const createLicenseFromOrder = async (order, discordId) => {
+    return await db.transaction(async (client) => {
+        return await createLicenseFromOrderInTx(client, order, discordId);
+    });
+};
+
+/**
+ * トランザクション内でのライセンス作成（内部用）
+ */
+const createLicenseFromOrderInTx = async (client, order, discordId) => {
     const plan = PLANS[order.plan_type] || PLANS.FREE;
     
     // すでにこの注文からライセンスが発行されていないかチェック
-    const existing = await db.query('SELECT * FROM licenses WHERE order_id = $1', [order.id]);
+    const existing = await client.query('SELECT * FROM licenses WHERE order_id = $1', [order.id]);
     if (existing.rowCount > 0) {
         logger.warn('[LicenseService] License already exists for order:', order.order_number);
         return existing.rows[0];
@@ -37,7 +46,7 @@ const createLicenseFromOrder = async (order, discordId) => {
             RETURNING *
         `;
         
-        const res = await db.query(query, [
+        const res = await client.query(query, [
             licenseKey,
             discordId,
             order.id,
@@ -48,20 +57,20 @@ const createLicenseFromOrder = async (order, discordId) => {
         ]);
 
         const newLicense = res.rows[0];
-        logger.info('[LicenseService] License created:', { 
+        logger.info('[LicenseService] License created in transaction:', { 
             key: newLicense.license_key, 
             discordId: newLicense.discord_id 
         });
 
         // 監査ログ
-        await db.query(
+        await client.query(
             'INSERT INTO audit_logs (action_type, actor_type, actor_id, target_type, target_id, details) VALUES ($1, $2, $3, $4, $5, $6)',
             ['LICENSE_CREATED', 'SYSTEM', discordId, 'LICENSE', newLicense.id, JSON.stringify({ key: newLicense.license_key })]
         );
 
         return newLicense;
     } catch (err) {
-        logger.error('[LicenseService] Error in createLicenseFromOrder:', err);
+        logger.error('[LicenseService] Error in createLicenseFromOrderInTx:', err);
         throw err;
     }
 };
@@ -209,6 +218,7 @@ const resetLicenseActivations = async (licenseKey, actorId) => {
 
 module.exports = {
     createLicenseFromOrder,
+    createLicenseFromOrderInTx,
     getLicensesByDiscordId,
     verifyLicense,
     deactivateMachine,

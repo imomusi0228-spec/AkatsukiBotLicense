@@ -6,7 +6,7 @@ const router = express.Router();
  * サービス稼働監視用エンドポイント
  * GET /api/health
  */
-router.get('/', (req, res) => {
+router.get('/health', (req, res) => {
     res.json({
         ok: true,
         service: 'akatsuki-license-server',

@@ -24,8 +24,9 @@ const imapConfig = {
 
 /**
  * 新着メールを取得して処理する
+ * @param {import('discord.js').Client} client Discordクライアント
  */
-const processMailbox = () => {
+const processMailbox = (client) => {
     return new Promise((resolve, reject) => {
         const imap = new Imap(imapConfig);
 
@@ -68,6 +69,22 @@ const processMailbox = () => {
                                         const newOrder = await createOrderIfNotExists(boothData);
                                         if (newOrder) {
                                             processedCount++;
+                                            
+                                            // Discord ID があれば DM を送信
+                                            if (newOrder.buyer_discord_id && client) {
+                                                try {
+                                                    const user = await client.users.fetch(newOrder.buyer_discord_id);
+                                                    if (user) {
+                                                        await user.send({
+                                                            content: `📦 **AkatsukiBot | ライセンス発行のお知らせ**\n\nご購入ありがとうございます。ライセンス有効化のための「トークン」を発行いたしました。\n\n**注文番号:** \`${newOrder.order_number}\`\n**トークン:** \`${newOrder.activation_token}\`\n\nDiscordサーバーのチャンネルにて \`/activate\` コマンドを実行し、上記の内容を入力してアクティベートを完了させてください。\n\n--- \n💡 **トークンを紛失された場合や再確認したい場合:** \nこちらのページからいつでも照会可能です：\nhttps://akatsukibot-license.duckdns.org/lookup.html`
+                                                        });
+                                                        await db.query('UPDATE orders SET token_sent = TRUE WHERE id = $1', [newOrder.id]);
+                                                        logger.info(`[MailService] Sent activation DM to ${user.tag} for order ${newOrder.order_number}`);
+                                                    }
+                                                } catch (dmErr) {
+                                                    logger.error(`[MailService] Failed to send DM to ${newOrder.buyer_discord_id}:`, dmErr.message);
+                                                }
+                                            }
                                         }
                                     }
                                 } catch (e) {
@@ -105,16 +122,17 @@ const processMailbox = () => {
 /**
  * 定期監視を開始する
  */
-const startMailPolling = () => {
+const startMailPolling = (client) => {
     logger.info('[MailService] Mail polling started with cron:', MAIL_POLL_CRON);
+    const db = require('../config/database'); // フラグ更新用
     
     // 即時実行
-    processMailbox().catch(err => logger.error('[MailService] Initial poll failed:', err));
+    processMailbox(client).catch(err => logger.error('[MailService] Initial poll failed:', err));
 
     // cronスケジュール
     cron.schedule(MAIL_POLL_CRON, async () => {
         try {
-            const count = await processMailbox();
+            const count = await processMailbox(client);
             if (count > 0) {
                 logger.info(`[MailService] Processed ${count} new BOOTH order(s)`);
             }

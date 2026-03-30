@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { authMiddleware } = require('./middleware');
+const rateLimit = require('express-rate-limit');
+const { normalizeOrderNumber } = require('../src/utils/normalize'); // src配下にあるため階層に注意
+
+// トークン照会用の専用レートリミッター (15分に5回まで)
+const lookupLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { error: 'リクエスト回数が多すぎます。しばらく時間を置いてから再度お試しください。' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // GET /api/portal/me
 router.get('/me', authMiddleware, async (req, res) => {
@@ -74,6 +85,74 @@ router.post('/licenses/:guildId/toggle', authMiddleware, async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+// POST /api/portal/lookup (Public Token Lookup)
+router.post('/lookup', lookupLimiter, async (req, res) => {
+    const { orderNumber, buyerName } = req.body;
+
+    if (!orderNumber || !buyerName) {
+        return res.status(400).json({ error: '注文番号と購入時の名前を入力してください。' });
+    }
+
+    try {
+        const normalizedInputOrder = normalizeOrderNumber(orderNumber);
+        const normalizedInputName = buyerName.replace(/\s+/g, '').toLowerCase();
+
+        // 注文を検索
+        const result = await db.query(
+            'SELECT * FROM orders WHERE order_number_normalized = $1',
+            [normalizedInputOrder]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: '注文が見つかりません。入力内容をご確認ください。' });
+        }
+
+        const order = result.rows[0];
+        const normalizedDbName = (order.buyer_name || '').replace(/\s+/g, '').toLowerCase();
+
+        // 名前を照合
+        if (normalizedDbName !== normalizedInputName) {
+            return res.status(403).json({ error: '購入者名が一致しません。' });
+        }
+
+        // 時間ベースの照合 (お嬢様発案のランダム認証)
+        const { verifyField, verifyValue } = req.body;
+        if (verifyField && verifyValue) {
+            const orderTime = new Date(order.mail_received_at);
+            let actualValue;
+            
+            switch (verifyField) {
+                case 'hour': actualValue = orderTime.getHours().toString().padStart(2, '0'); break;
+                case 'minute': actualValue = orderTime.getMinutes().toString().padStart(2, '0'); break;
+                case 'second': actualValue = orderTime.getSeconds().toString().padStart(2, '0'); break;
+                default: return res.status(400).json({ error: '無効な照合項目です。' });
+            }
+
+            // 入力値を正規化 (1桁なら0埋め)
+            const normalizedInput = verifyValue.toString().padStart(2, '0');
+
+            if (actualValue !== normalizedInput) {
+                return res.status(403).json({ error: `注文時の「${verifyField === 'hour' ? '時' : (verifyField === 'minute' ? '分' : '秒')}」が一致しません。` });
+            }
+        } else {
+            // フィールドがない場合はエラー (フロントエンドで必ず送るようにする)
+            return res.status(400).json({ error: '時間情報の照合が必要です。' });
+        }
+
+        // トークンを返却
+        res.json({
+            success: true,
+            orderNumber: order.order_number,
+            token: order.activation_token,
+            used: order.used,
+            planType: order.plan_type
+        });
+
+    } catch (err) {
+        console.error('[Lookup API] Error:', err);
+        res.status(500).json({ error: 'サーバーエラーが発生しました。' });
     }
 });
 

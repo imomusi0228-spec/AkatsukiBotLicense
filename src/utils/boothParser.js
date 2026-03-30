@@ -48,10 +48,18 @@ const parseBoothMail = ({ subject, text, from, messageId, date }) => {
     const buyerEmailRaw = extractByPattern(text, BUYER_EMAIL);
     const buyerNameRaw = extractByPattern(text, require('../constants/mailPatterns').BUYER_NAME);
     const giftRecipientRaw = extractByPattern(text, require('../constants/mailPatterns').GIFT_RECIPIENT);
+    const discordIdRaw = extractByPattern(text, require('../constants/mailPatterns').DISCORD_ID);
+    const orderDateRaw = extractByPattern(text, require('../constants/mailPatterns').ORDER_DATE);
 
     const orderNumber = normalizeOrderNumber(orderNumberRaw);
     const buyerEmail = normalizeEmail(buyerEmailRaw);
     const planType = detectPlanType(productNameRaw);
+
+    // 注文日時を Date オブジェクトに変換
+    let orderDate = null;
+    if (orderDateRaw) {
+        orderDate = new Date(orderDateRaw.replace(/\//g, '-')); // 標準形式へ
+    }
 
     if (!orderNumber || !productNameRaw) {
         logger.warn('[Parser] Failed to extract core info from BOOTH mail:', {
@@ -69,6 +77,8 @@ const parseBoothMail = ({ subject, text, from, messageId, date }) => {
         buyerName: buyerNameRaw,
         giftRecipient: giftRecipientRaw,
         buyerEmail,
+        discordId: discordIdRaw,
+        orderDate,
         planType,
         raw: {
             subject,

@@ -21,7 +21,7 @@ app.use((req, res, next) => {
             // Only log if it's an API call or an error
             if (req.path.startsWith('/api/') || res.statusCode >= 400) {
                 const authHeader = req.headers['authorization'] ? 'AuthSet' : 'NoAuth';
-                console.log(`[REQ] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - ${authHeader} - ${duration}ms`);
+                console.log(`[REQ] ${req.method} ${req.originalUrl} - IP: ${req.ip} - Status: ${res.statusCode} - ${authHeader} - ${duration}ms`);
             }
         });
     }
@@ -47,7 +47,7 @@ app.use(helmet({
 // Global Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200, // Increased from 100 to be safer for dashboard usage
+    max: 1000, // Increased from 200 to 1000 to prevent false positives for active users
     standardHeaders: true,
     legacyHeaders: false,
 });

@@ -115,9 +115,6 @@ client.on(Events.GuildMemberAdd, async (member) => {
 
 async function main() {
     try {
-        console.log('[Main] Starting web server...');
-        startServer(client);
-
         console.log('[Main] Initializing database...');
         await db.initDB();
 
