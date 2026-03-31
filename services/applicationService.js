@@ -335,10 +335,11 @@ async function approveApplication(appId, operatorId, operatorName, isAuto = fals
     const reservedUser = app.parsed_user_id || null;
 
     // 3. Insert into license_keys
+    // link strictly with the intended user (parsed_user_id) instead of the submitter (author_id)
     await db.query(`
         INSERT INTO license_keys (key_id, tier, duration_months, duration_days, reserved_user_id, notes)
         VALUES ($1, $2, $3, $4, $5, $6)
-    `, [key, tier, durationMonths, durationDays, reservedUser, `Generated for App ID: ${appId} (${app.parsed_booth_name})`]);
+    `, [key, tier, durationMonths, durationDays, reservedUser, `Approved for ${app.author_name} (${app.parsed_booth_name})`]);
 
     // 4. Update application status
     await db.query('UPDATE applications SET status = \'approved\', license_key = $1 WHERE id = $2', [key, appId]);

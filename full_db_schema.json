@@ -1,0 +1,1394 @@
+[
+  {
+    "table_name": "applications",
+    "column_name": "id"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "message_id"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "channel_id"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "author_id"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "author_name"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "content"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "parsed_user_id"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "parsed_guild_id"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "parsed_tier"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "parsed_booth_name"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "status"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "auto_processed"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "license_key"
+  },
+  {
+    "table_name": "applications",
+    "column_name": "booth_order_id"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "id"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "action_type"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "actor_type"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "actor_id"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "target_type"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "target_id"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "details"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "id"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "pattern"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "tier"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "duration_months"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "duration_days"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "is_active"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "match_type"
+  },
+  {
+    "table_name": "auto_approval_rules",
+    "column_name": "tier_mode"
+  },
+  {
+    "table_name": "auto_vc_channels",
+    "column_name": "channel_id"
+  },
+  {
+    "table_name": "auto_vc_channels",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "auto_vc_channels",
+    "column_name": "owner_id"
+  },
+  {
+    "table_name": "auto_vc_channels",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "blacklist",
+    "column_name": "target_id"
+  },
+  {
+    "table_name": "blacklist",
+    "column_name": "type"
+  },
+  {
+    "table_name": "blacklist",
+    "column_name": "reason"
+  },
+  {
+    "table_name": "blacklist",
+    "column_name": "operator_id"
+  },
+  {
+    "table_name": "blacklist",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "bot_system_settings",
+    "column_name": "key"
+  },
+  {
+    "table_name": "bot_system_settings",
+    "column_name": "value"
+  },
+  {
+    "table_name": "bot_system_settings",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "id"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "channel_id"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "message_id"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "content"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "embed_title"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "color"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "buttons"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "button_roles",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "command_usage_logs",
+    "column_name": "id"
+  },
+  {
+    "table_name": "command_usage_logs",
+    "column_name": "command_name"
+  },
+  {
+    "table_name": "command_usage_logs",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "command_usage_logs",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "command_usage_logs",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "daily_stats",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "daily_stats",
+    "column_name": "stats_date"
+  },
+  {
+    "table_name": "daily_stats",
+    "column_name": "message_count"
+  },
+  {
+    "table_name": "daily_stats",
+    "column_name": "join_count"
+  },
+  {
+    "table_name": "daily_stats",
+    "column_name": "leave_count"
+  },
+  {
+    "table_name": "daily_stats",
+    "column_name": "vc_minutes"
+  },
+  {
+    "table_name": "external_api_keys",
+    "column_name": "key_id"
+  },
+  {
+    "table_name": "external_api_keys",
+    "column_name": "name"
+  },
+  {
+    "table_name": "external_api_keys",
+    "column_name": "is_active"
+  },
+  {
+    "table_name": "external_api_keys",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "external_api_keys",
+    "column_name": "last_used_at"
+  },
+  {
+    "table_name": "guild_member_snapshots",
+    "column_name": "id"
+  },
+  {
+    "table_name": "guild_member_snapshots",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "guild_member_snapshots",
+    "column_name": "member_count"
+  },
+  {
+    "table_name": "guild_member_snapshots",
+    "column_name": "captured_at"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "key_id"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "tier"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "duration_months"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "is_used"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "used_by_user"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "used_at"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "notes"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "reserved_user_id"
+  },
+  {
+    "table_name": "license_keys",
+    "column_name": "duration_days"
+  },
+  {
+    "table_name": "licenses",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "licenses",
+    "column_name": "notes"
+  },
+  {
+    "table_name": "licenses",
+    "column_name": "expires_at"
+  },
+  {
+    "table_name": "licenses",
+    "column_name": "tier"
+  },
+  {
+    "table_name": "log_events",
+    "column_name": "id"
+  },
+  {
+    "table_name": "log_events",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "log_events",
+    "column_name": "type"
+  },
+  {
+    "table_name": "log_events",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "log_events",
+    "column_name": "ts"
+  },
+  {
+    "table_name": "log_events",
+    "column_name": "meta"
+  },
+  {
+    "table_name": "log_events",
+    "column_name": "duration_ms"
+  },
+  {
+    "table_name": "log_threads",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "log_threads",
+    "column_name": "date_key"
+  },
+  {
+    "table_name": "log_threads",
+    "column_name": "kind"
+  },
+  {
+    "table_name": "log_threads",
+    "column_name": "thread_id"
+  },
+  {
+    "table_name": "member_events",
+    "column_name": "id"
+  },
+  {
+    "table_name": "member_events",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "member_events",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "member_events",
+    "column_name": "event_type"
+  },
+  {
+    "table_name": "member_events",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "total_vc_minutes"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "last_activity_at"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "message_count"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "xp"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "level"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "last_xp_gain_at"
+  },
+  {
+    "table_name": "member_stats",
+    "column_name": "intro_reminded"
+  },
+  {
+    "table_name": "ng_hits",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "ng_hits",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "ng_hits",
+    "column_name": "count"
+  },
+  {
+    "table_name": "ng_hits",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "ng_logs",
+    "column_name": "id"
+  },
+  {
+    "table_name": "ng_logs",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "ng_logs",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "ng_logs",
+    "column_name": "user_name"
+  },
+  {
+    "table_name": "ng_logs",
+    "column_name": "word"
+  },
+  {
+    "table_name": "ng_logs",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "ng_words",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "ng_words",
+    "column_name": "kind"
+  },
+  {
+    "table_name": "ng_words",
+    "column_name": "word"
+  },
+  {
+    "table_name": "ng_words",
+    "column_name": "flags"
+  },
+  {
+    "table_name": "ng_words",
+    "column_name": "created_by"
+  },
+  {
+    "table_name": "ng_words",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "ng_words",
+    "column_name": "id"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "id"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "operator_id"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "operator_name"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "target_id"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "action_type"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "details"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "target_name"
+  },
+  {
+    "table_name": "operation_logs",
+    "column_name": "metadata"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "id"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "order_number"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "order_number_normalized"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "buyer_email"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "buyer_email_normalized"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "product_name"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "plan_type"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "source_message_id"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "raw_subject"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "raw_body"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "mail_received_at"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "used"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "used_by_discord_id"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "used_at"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "buyer_name"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "gift_recipient"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "buyer_discord_id"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "activation_token"
+  },
+  {
+    "table_name": "orders",
+    "column_name": "token_sent"
+  },
+  {
+    "table_name": "processed_messages",
+    "column_name": "message_id"
+  },
+  {
+    "table_name": "processed_messages",
+    "column_name": "processed_at"
+  },
+  {
+    "table_name": "reaction_roles",
+    "column_name": "id"
+  },
+  {
+    "table_name": "reaction_roles",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "reaction_roles",
+    "column_name": "message_id"
+  },
+  {
+    "table_name": "reaction_roles",
+    "column_name": "emoji"
+  },
+  {
+    "table_name": "reaction_roles",
+    "column_name": "role_id"
+  },
+  {
+    "table_name": "reaction_roles",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "id"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "title"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "content"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "type"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "scheduled_at"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "sent_at"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "associated_tasks"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "is_draft"
+  },
+  {
+    "table_name": "scheduled_announcements",
+    "column_name": "target_tiers"
+  },
+  {
+    "table_name": "sessions",
+    "column_name": "sid"
+  },
+  {
+    "table_name": "sessions",
+    "column_name": "data"
+  },
+  {
+    "table_name": "sessions",
+    "column_name": "expires_at"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "log_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ng_threshold"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "timeout_minutes"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "activity_weeks"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "intro_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "target_role_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "log_channel_name"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "autorole_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "autorole_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "audit_role_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ng_log_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "value"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "antiraid_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "antiraid_threshold"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "self_intro_role_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "self_intro_min_length"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "self_intro_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "vc_report_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "vc_report_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "vc_report_interval"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "vc_report_last_sent"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "vc_role_rules"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "last_announced_version"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "alpha_features"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "antiraid_guard_level"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "raid_join_threshold"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "newcomer_restrict_mins"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "newcomer_min_account_age"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "link_block_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "domain_blacklist"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "quarantine_role_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "quarantine_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "auto_slowmode_channels"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ai_advice_days"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ai_advice_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ai_insight_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ai_insight_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ai_insight_last_sent"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "insight_sections"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "phase2_threshold"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "phase3_threshold"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "phase4_threshold"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "phase2_action"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "phase3_action"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "phase4_action"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "intro_reminder_hours"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "report_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ng_warning_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ticket_welcome_msg"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "color_log"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "color_level"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "color_ticket"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "dashboard_theme_color"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "branding_footer_text"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ai_prediction_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "auto_vc_creator_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "color_ng"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "color_vc_join"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "color_vc_leave"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "dashboard_theme_mode"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ticket_staff_role_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ticket_log_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "antiraid_auto_recovery_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "antiraid_honeypot_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "antiraid_avatar_scrutiny_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "last_raid_at"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ai_predict_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "auto_action_on_warns"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "warn_action_threshold"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "warn_action"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "leaderboard_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "levelup_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "levelup_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "welcome_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "welcome_message"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "farewell_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "farewell_message"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "welcome_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "farewell_enabled"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "mod_log_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "mod_log_flags"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "update_announce_channel_id"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "last_notified_version"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ticket_panel_title"
+  },
+  {
+    "table_name": "settings",
+    "column_name": "ticket_panel_desc"
+  },
+  {
+    "table_name": "staff_permissions",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "staff_permissions",
+    "column_name": "username"
+  },
+  {
+    "table_name": "staff_permissions",
+    "column_name": "role"
+  },
+  {
+    "table_name": "staff_permissions",
+    "column_name": "added_at"
+  },
+  {
+    "table_name": "staff_permissions",
+    "column_name": "discord_tag"
+  },
+  {
+    "table_name": "stats_history",
+    "column_name": "id"
+  },
+  {
+    "table_name": "stats_history",
+    "column_name": "active_count"
+  },
+  {
+    "table_name": "stats_history",
+    "column_name": "new_count"
+  },
+  {
+    "table_name": "stats_history",
+    "column_name": "renew_count"
+  },
+  {
+    "table_name": "stats_history",
+    "column_name": "total_revenue_est"
+  },
+  {
+    "table_name": "stats_history",
+    "column_name": "captured_at"
+  },
+  {
+    "table_name": "subscription_logs",
+    "column_name": "id"
+  },
+  {
+    "table_name": "subscription_logs",
+    "column_name": "server_id"
+  },
+  {
+    "table_name": "subscription_logs",
+    "column_name": "action"
+  },
+  {
+    "table_name": "subscription_logs",
+    "column_name": "details"
+  },
+  {
+    "table_name": "subscription_logs",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "tier"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "start_date"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "expiry_date"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "is_active"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "auto_renew"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "notes"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "valid_until"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "expiry_warning_sent"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "cached_username"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "cached_servername"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "current_milestone"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "auto_unlock_enabled"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "migration_count"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "last_migration_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "paused_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "paused_tier"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "user_avatar"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "user_handle"
+  },
+  {
+    "table_name": "test_table",
+    "column_name": "id"
+  },
+  {
+    "table_name": "test_table",
+    "column_name": "name"
+  },
+  {
+    "table_name": "ticket_categories",
+    "column_name": "id"
+  },
+  {
+    "table_name": "ticket_categories",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "ticket_categories",
+    "column_name": "name"
+  },
+  {
+    "table_name": "ticket_categories",
+    "column_name": "emoji"
+  },
+  {
+    "table_name": "ticket_categories",
+    "column_name": "description"
+  },
+  {
+    "table_name": "ticket_categories",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "id"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "channel_id"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "status"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "closed_at"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "assigned_to"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "transcript_id"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "category"
+  },
+  {
+    "table_name": "tickets",
+    "column_name": "category_id"
+  },
+  {
+    "table_name": "tier_role_mappings",
+    "column_name": "tier"
+  },
+  {
+    "table_name": "tier_role_mappings",
+    "column_name": "role_id"
+  },
+  {
+    "table_name": "tier_role_mappings",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "session_id"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "username"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "avatar"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "discriminator"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "expiry"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "vc_sessions",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "vc_sessions",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "vc_sessions",
+    "column_name": "channel_id"
+  },
+  {
+    "table_name": "vc_sessions",
+    "column_name": "join_time"
+  },
+  {
+    "table_name": "vc_sessions",
+    "column_name": "leave_time"
+  },
+  {
+    "table_name": "vc_sessions",
+    "column_name": "duration_seconds"
+  },
+  {
+    "table_name": "vc_sessions",
+    "column_name": "id"
+  },
+  {
+    "table_name": "warnings",
+    "column_name": "id"
+  },
+  {
+    "table_name": "warnings",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "warnings",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "warnings",
+    "column_name": "reason"
+  },
+  {
+    "table_name": "warnings",
+    "column_name": "issued_by"
+  },
+  {
+    "table_name": "warnings",
+    "column_name": "created_at"
+  }
+]

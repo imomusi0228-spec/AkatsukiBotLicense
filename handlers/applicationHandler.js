@@ -89,7 +89,7 @@ async function handleApplicationModal(interaction) {
         let replyMsg = '✅ **申請を受け付けました！**\n内容を精査し、不備がなければライセンスを発行いたします。';
         if (result.auto_processed) {
             replyMsg = result.tier === 'ULTIMATE' 
-                ? '⚡ **ULTIMATEライセンスを自動有効化しました！**\nお嬢様、永久ライセンスのご利用ありがとうございます！'
+                ? '⚡ **ULTIMATEライセンスを自動有効化しました！**\n永久ライセンスのご利用、誠にありがとうございます。'
                 : '⚡ **自動発行・承認が完了しました！**\nライセンスキーをWebhookまたはDMで送信しましたので、ご確認ください。';
         } else if (result.auto_rejected) {
             replyMsg = '⚠️ **トライアルは既に利用済みです**\nトライアルは1回限りの提供となっております。引き続きご利用いただく場合は、有料プランをご検討ください。';

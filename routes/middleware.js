@@ -38,6 +38,10 @@ async function authMiddleware(req, res, next) {
         token = req.query.token; // fallback for window.open() downloads
     }
     const sessionId = req.cookies['session_id'];
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
+
+    // --- 0. IP-based Rate Limiting (Brute Force Protection) ---
+    // (Optional: Implement a simple leak-bucket or counter for this IP if needed)
 
     // 0. Maintenance Mode Check
     try {
@@ -45,32 +49,63 @@ async function authMiddleware(req, res, next) {
         const isMaint = maintRes.rows.length > 0 ? maintRes.rows[0].value === 'true' : false;
         
         if (isMaint) {
-            // Check if it's admin/staff BEFORE blocking
-            // Admin token is always allowed
+            // Check if it's admin/staff BEFORE blocking (Admins are exempt)
             if (token && (token === `Bearer ${ADMIN_TOKEN}` || token === ADMIN_TOKEN)) {
                 req.user = { userId: 'admin-token', username: 'System Admin', role: 'admin' };
                 return next();
             }
 
-            // For session-based, check if they are in ADMIN_DISCORD_IDS
             if (sessionId) {
-                const sessionRes = await db.query('SELECT user_id FROM user_sessions WHERE session_id = $1', [sessionId]);
+                const sessionRes = await db.query('SELECT user_id, username FROM user_sessions WHERE session_id = $1', [sessionId]);
                 if (sessionRes.rows.length > 0) {
-                    const userId = sessionRes.rows[0].user_id;
+                    const sessionData = sessionRes.rows[0];
                     const allowedIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(id => id.trim());
-                    if (!allowedIds.includes(userId)) {
+                    
+                    if (!allowedIds.includes(sessionData.user_id)) {
+                        // 1. Log Violation & Reset recovery timer
+                        await db.query(
+                            "INSERT INTO operation_logs (action_type, operator_id, operator_name, target_id, details, ip_address) VALUES ($1, $2, $3, $4, $5, $6)",
+                            ['MAINTENANCE_VIOLATION', sessionData.user_id, sessionData.username, 'SYSTEM', `メンテナンス中のWebアクセス試行 (${req.method} ${req.path})`, ipAddress]
+                        );
+                        await db.query(`
+                            INSERT INTO bot_system_settings (key, value) VALUES ('last_anomaly_at', CURRENT_TIMESTAMP::text)
+                            ON CONFLICT (key) DO UPDATE SET value = CURRENT_TIMESTAMP::text
+                        `);
+
+                        // 2. Count violations in current maintenance window
+                        const limitRes = await db.query(`
+                            SELECT COUNT(*) as count FROM operation_logs 
+                            WHERE action_type = 'MAINTENANCE_VIOLATION' 
+                            AND (operator_id = $1 OR ip_address = $2)
+                            AND created_at >= (
+                                SELECT COALESCE((SELECT created_at FROM operation_logs WHERE action_type = 'AUTO_BLOCK' OR action_type = 'MAINTENANCE_START' ORDER BY created_at DESC LIMIT 1), '1970-01-01'::timestamp)
+                            )
+                        `, [sessionData.user_id, ipAddress]);
+                        
+                        const violationCount = parseInt(limitRes.rows[0].count);
+
+                        if (violationCount >= 3) {
+                            const reason = `[AUTO-BLOCK] メンテナンス中の度重なる警告無視 (Web経由 ${violationCount}回目)`;
+                            await db.query(
+                                'INSERT INTO blacklist (target_id, type, reason, operator_id) VALUES ($1, $2, $3, $4) ON CONFLICT (target_id) DO UPDATE SET reason = EXCLUDED.reason',
+                                [sessionData.user_id, 'user', reason, 'SYSTEM']
+                            );
+                            return res.status(403).json({ 
+                                error: 'Forbidden', 
+                                message: '⚠️ 度重なる警告を無視してアクセスを試行したため、アカウントがブラックリストに登録されました。' 
+                            });
+                        }
+
                         return res.status(503).json({ 
                             error: 'Service Unavailable', 
-                            message: '現在メンテナンス中です。しばらく経ってから再度お試しください。' 
+                            message: `現在メンテナンス中です。復旧までしばらくお待ちください (${violationCount}/2 回猶予中)\n※無視して試行を続けるとアカウントが制限される場合がございます。` 
                         });
                     }
                 }
-                // If no matching session, proceed to regular auth (which will fail with 401/503)
             } else {
-                // No token, no session -> direct block
                 return res.status(503).json({ 
                     error: 'Service Unavailable', 
-                    message: '現在メンテナンス中です。しばらく経ってから再度お試しください。' 
+                    message: '現在メンテナンス中です。しばらくたってから再度お試しください。' 
                 });
             }
         }
@@ -143,8 +178,14 @@ async function authMiddleware(req, res, next) {
                         avatar: session.avatar,
                         discriminator: session.discriminator,
                         tier: userTier,
-                        role: staffRole || (isExplicitAdmin ? 'admin' : 'user')
+                        role: staffRole || (isExplicitAdmin ? 'admin' : 'user'),
+                        ipAddress: ipAddress
                     };
+
+                    // Update IP in session if changed
+                    if (session.ip_address !== ipAddress) {
+                        db.query('UPDATE user_sessions SET ip_address = $1 WHERE session_id = $2', [ipAddress, sessionId]).catch(console.error);
+                    }
 
                     // --- CSRF Check for State-Changing Methods ---
                     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {

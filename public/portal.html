@@ -366,9 +366,37 @@
                                 一時停止する
                             </button>`
                         }
+                        <button class="btn btn-outline" style="border-color: var(--warning-color); color: var(--warning-color);" onclick="moveLicense('${sub.guild_id}')">
+                           🚀 サーバー移転 (解除)
+                        </button>
                     </div>
                 </div>
             `;
+        }
+
+        async function moveLicense(guildId) {
+            const confirmed = confirm('このサーバーのライセンス紐付けを解除しますか？\n解除後は新しいサーバーで「/activate」コマンドを実行することで再度有効化できます。\n\n※移転後は30日間のクールダウンが発生します。');
+            if (!confirmed) return;
+
+            try {
+                const res = await fetch(`/api/portal/licenses/${guildId}/move`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCookie('csrf_token')
+                    }
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('サーバーの紐付けを解除しました。新しいサーバーでボットの /activate コマンドを実行してください。');
+                    loadLicenses();
+                } else {
+                    alert('エラー: ' + (data.error || '不明なエラーが発生しました。'));
+                }
+            } catch (err) {
+                alert('通信エラーが発生しました。');
+            }
         }
 
         async function toggleLicense(guildId, action) {

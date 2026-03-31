@@ -30,7 +30,10 @@ createApp({
             retention_rate: 0,
             growth_data: [],
             heatmap_data: [],
-            top_commands: []
+            top_commands: [],
+            mrr_estimate: 0,
+            churn_rate: 0,
+            growth_rate: 0
         });
         const selectedSubs = ref([]);
         const roleMappings = ref([]);
@@ -332,9 +335,13 @@ createApp({
             // but for full scalability, we'd add &status= filter to API.
             // For now, let's just use the search param.
 
+            // Build query params for applications
+            let appQuery = `?page=${appPagination.value.page}&limit=${appPagination.value.limit}`;
+            if (searchQuery.value) appQuery += `&search=${encodeURIComponent(searchQuery.value)}`;
+
             const [sRes, aRes, stData, setsRes, dsData, blRes, rmRes, staffRes, rulesRes, keysRes] = await Promise.all([
                 api(`/subscriptions${subQuery}`),
-                api(`/applications?page=${appPagination.value.page}&limit=${appPagination.value.limit}`),
+                api(`/applications${appQuery}`),
                 api('/subscriptions/stats'),
                 api('/settings'),
                 api('/subscriptions/stats/detailed'),
@@ -420,7 +427,7 @@ createApp({
             try {
                 const res = await api('/system/backup', 'POST');
                 if (res.success) {
-                    alert(`バックアップが完了しましたわ！\nファイル名: ${res.fileName}\n形式: ${res.type.toUpperCase()}`);
+                    alert(`バックアップが完了しました。\nファイル名: ${res.fileName}\n形式: ${res.type.toUpperCase()}`);
                 } else {
                     alert('バックアップに失敗しました: ' + (res.error || '不明なエラー'));
                 }
@@ -563,7 +570,7 @@ createApp({
 
         const createSub = async () => {
             if (!addModal.data.guild_id || !addModal.data.user_id) {
-                alert('サーバーIDとユーザーIDは必須やな');
+                alert('サーバーIDとユーザーIDは必須です。');
                 return;
             }
             await api('/subscriptions', 'POST', addModal.data);
@@ -670,10 +677,10 @@ createApp({
             await api(`/subscriptions/${gId}`, 'DELETE');
 
             // 2. Ask for Blacklist
-            if (confirm(`あわせて、所有者(@${sub.user_handle})またはサーバーを「ブラックリスト」へ封印しますか？\n封印するとコマンド使用やポータルへのアクセスが一切禁止されます。`)) {
-                const type = confirm('「サーバーID」を封印しますか？（キャンセルで「ユーザーID」を封印）') ? 'guild' : 'user';
+            if (confirm(`あわせて、所有者(@${sub.user_handle})またはサーバーを「ブラックリスト」に追加しますか？\n追加するとコマンド使用やポータルへのアクセスが一切禁止されます。`)) {
+                const type = confirm('「サーバーID」を対象にしますか？（キャンセルで「ユーザーID」を対象にする）') ? 'guild' : 'user';
                 const targetId = type === 'guild' ? gId : uId;
-                const reason = prompt('封印の理由を入力してください（任意）', '管理者による追放処置');
+                const reason = prompt('追加の理由を入力してください（任意）', '管理者による制限処置');
                 await api('/blacklist', 'POST', { target_id: targetId, type, reason });
             }
 
@@ -682,7 +689,7 @@ createApp({
 
         const addAutomationRule = async () => {
             if (newRule.match_type !== 'name_match' && !newRule.pattern) {
-                return alert('パターンを入力してな');
+                return alert('パターンを入力してください。');
             }
             await api('/automations/rules', 'POST', newRule);
             // Reset to defaults
@@ -701,7 +708,7 @@ createApp({
         const createApiKey = async () => {
             const res = await api('/automations/keys', 'POST', { name: newApiKeyName.value });
             if (res.key) {
-                alert('APIキーを発行しました。一度しか表示されないのでメモしておいてな：\n' + res.key);
+                alert('APIキーを発行しました。一度しか表示されないため控えておいてください：\n' + res.key);
                 newApiKeyName.value = '';
                 loadData();
             }
@@ -789,7 +796,7 @@ createApp({
 
         const sendAnnouncement = async () => {
             if (!announceModal.title || !announceModal.content) {
-                alert('タイトルと内容は必須やな');
+                alert('タイトルと内容は必須です。');
                 return;
             }
             announceModal.sending = true;

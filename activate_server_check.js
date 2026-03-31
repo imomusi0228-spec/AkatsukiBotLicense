@@ -29,6 +29,31 @@ module.exports = async (interaction) => {
         return interaction.editReply({ content: '❌ サーバーIDを指定するか、サーバー内でコマンドを実行してください。' });
     }
 
+    // --- 0. Global Maintenance / Auto-Lock Check ---
+    const maintRes = await db.query("SELECT value FROM bot_system_settings WHERE key = 'maintenance_mode'");
+    if (maintRes.rows.length > 0 && maintRes.rows[0].value === 'true') {
+        const allowedAdmins = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(id => id.trim());
+        if (!allowedAdmins.includes(userId)) {
+            return interaction.editReply({ 
+                content: '⚠️ **現在システムロック中です**\n異常なアクティビティ検知またはメンテナンスのため、新規のアクティベートを一時的に停止しております。しばらく時間を置いてから再度お試しください。' 
+            });
+        }
+    }
+
+    // --- 0.5 User-Level Rate Limiting (Fraud Prevention) ---
+    const RATE_LIMIT_THRESHOLD = 3;
+    const userLimitCheck = await db.query(`
+        SELECT COUNT(*) FROM operation_logs 
+        WHERE operator_id = $1 AND action_type = 'activate' 
+        AND created_at >= NOW() - INTERVAL '1 hour'
+    `, [userId]);
+    
+    if (parseInt(userLimitCheck.rows[0].count) >= RATE_LIMIT_THRESHOLD) {
+        return interaction.editReply({ 
+            content: `❌ **レート制限超過**\n短時間に多くの実行を試行しすぎています。不正防止のため、1時間あたり${RATE_LIMIT_THRESHOLD}回までに制限されています。しばらく時間を置いてから再度実行してください。` 
+        });
+    }
+
     if (!/^\d{17,20}$/.test(guildId)) {
         return interaction.editReply({ content: '❌ **無効なサーバーIDです。**\n正しいIDを入力してください。' });
     }
@@ -138,29 +163,40 @@ module.exports = async (interaction) => {
         }
 
         // Calculate expiry
-        let exp = new Date();
-        if (tier === 'ULTIMATE') {
-            exp = null;
-        } else if (inputKey) {
-            // New key used
-            if (durationDays) {
-                exp.setDate(exp.getDate() + durationDays);
-            } else {
-                exp.setMonth(exp.getMonth() + durationMonths);
-            }
-        } else {
-            // Copied from existing sub, get the one with the furthest expiry
-            let furthestExp = existingSubs[0].expiry_date;
+        let furthestExp = null;
+        if (existingSubs.length > 0) {
             for (const sub of existingSubs) {
                 if (sub.expiry_date === null) {
-                    furthestExp = null;
+                    furthestExp = 'ULTIMATE';
                     break;
                 }
-                if (furthestExp && sub.expiry_date && new Date(sub.expiry_date) > new Date(furthestExp)) {
+                if (!furthestExp || new Date(sub.expiry_date) > new Date(furthestExp)) {
                     furthestExp = sub.expiry_date;
                 }
             }
-            exp = furthestExp ? new Date(furthestExp) : null;
+        }
+
+        let exp = new Date();
+        if (furthestExp === 'ULTIMATE' || tier === 'ULTIMATE') {
+            exp = null;
+        } else {
+            // Additive logic: If we have an existing furthest expiry that's NOT expired, add to it.
+            // If it's already expired, add from NOW.
+            if (furthestExp && new Date(furthestExp) > new Date()) {
+                exp = new Date(furthestExp);
+            }
+
+            if (inputKey) {
+                // New key used: add its duration
+                if (durationDays) {
+                    exp.setDate(exp.getDate() + durationDays);
+                } else {
+                    exp.setMonth(exp.getMonth() + durationMonths);
+                }
+            } else {
+                // No key, just refreshing/re-applying existing highest plan info
+                exp = furthestExp ? new Date(furthestExp) : null;
+            }
         }
 
         // 2. Perform Upsert for the current server

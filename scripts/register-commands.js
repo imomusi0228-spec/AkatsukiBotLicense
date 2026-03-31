@@ -12,20 +12,16 @@ async function main() {
 
         const clientId = process.env.CLIENT_ID || (await rest.get(Routes.user('@me'))).id;
 
-        // 1. Global Commands (Public)
-        // Note: Global commands take up to an hour to update, but are available in all servers.
-        const publicJson = publicCommands.map(cmd => cmd.toJSON());
-        if (publicJson.length > 0) {
-            console.log(`[Register] Registering ${publicJson.length} global commands...`);
-            await rest.put(Routes.applicationCommands(clientId), { body: publicJson });
-        }
+        // 1. Clear Global Commands (to avoid duplicates with Guild commands)
+        console.log('[Register] Cleaning up GLOBAL commands...');
+        await rest.put(Routes.applicationCommands(clientId), { body: [] });
 
-        // 2. Guild Commands (Admin/Support)
+        // 2. Guild Commands (Instant update for Support server)
         // Note: Guild commands update instantly but only for the specific guild.
-        if (process.env.SUPPORT_GUILD_ID && adminCommands.length > 0) {
-            console.log(`[Register] Registering ${adminCommands.length} guild commands to ${process.env.SUPPORT_GUILD_ID}...`);
-            const adminJson = adminCommands.map(cmd => cmd.toJSON());
-            await rest.put(Routes.applicationGuildCommands(clientId, process.env.SUPPORT_GUILD_ID), { body: adminJson });
+        if (process.env.SUPPORT_GUILD_ID) {
+            console.log(`[Register] Registering ${publicJson.length + adminCommands.length} guild commands to ${process.env.SUPPORT_GUILD_ID}...`);
+            const allCommandsJson = [...publicJson, ...adminCommands.map(cmd => cmd.toJSON())];
+            await rest.put(Routes.applicationGuildCommands(clientId, process.env.SUPPORT_GUILD_ID), { body: allCommandsJson });
         }
 
         console.log('[Register] Successfully reloaded application (/) commands.');

@@ -37,9 +37,27 @@ const loadCommands = () => {
     logger.info(`[Bot] Loaded ${client.commands.size} commands.`);
 };
 
+const db = require('../config/database');
+
 // インタラクション処理
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
+
+    // ブラックリストチェック
+    try {
+        const blCheck = await db.query(
+            'SELECT 1 FROM blacklist WHERE target_id = $1 OR target_id = $2',
+            [interaction.user.id, interaction.guildId]
+        );
+        if (blCheck.rowCount > 0) {
+            return interaction.reply({ 
+                content: '❌ あなた、またはこのサーバーはブラックリストに登録されているため、ボットの機能を利用できません。', 
+                ephemeral: true 
+            });
+        }
+    } catch (e) {
+        logger.error('Blacklist check error:', e);
+    }
 
     const command = client.commands.get(interaction.commandName);
     if (!command) return;

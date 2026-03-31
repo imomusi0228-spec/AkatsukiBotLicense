@@ -29,7 +29,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
         if (search) {
             params.push(`%${search}%`);
-            whereClause.push(`(target_id ILIKE $${params.length} OR target_name ILIKE $${params.length} OR details ILIKE $${params.length} OR operator_name ILIKE $${params.length})`);
+            whereClause.push(`(target_id ILIKE $${params.length} OR target_name ILIKE $${params.length} OR details ILIKE $${params.length} OR operator_name ILIKE $${params.length} OR ip_address ILIKE $${params.length})`);
         }
         if (action_type) {
             params.push(action_type);

@@ -87,6 +87,46 @@ router.post('/licenses/:guildId/toggle', authMiddleware, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// POST /api/portal/licenses/:guildId/move (User-initiated Deactivation)
+router.post('/licenses/:guildId/move', authMiddleware, async (req, res) => {
+    const { guildId } = req.params;
+    const userId = req.user.userId;
+    const username = req.user.username;
+
+    try {
+        const subRes = await db.query('SELECT * FROM subscriptions WHERE guild_id = $1 AND user_id = $2 AND is_active = TRUE', [guildId, userId]);
+        if (subRes.rows.length === 0) return res.status(404).json({ error: '有効なライセンスが見つからないか、あなたの所有物ではありません。' });
+        
+        const sub = subRes.rows[0];
+
+        // クールダウンチェック (30日間)
+        const lastMigration = sub.last_migration_at ? new Date(sub.last_migration_at) : null;
+        const cooldownDays = 30;
+        if (lastMigration && (Date.now() - lastMigration.getTime()) < cooldownDays * 24 * 60 * 60 * 1000) {
+            const nextAvailable = new Date(lastMigration.getTime() + cooldownDays * 24 * 60 * 60 * 1000);
+            return res.status(403).json({ 
+                error: `まだ引越しはできません。前回の引越しから${cooldownDays}日間のクールダウンが必要です。`,
+                nextAvailable: nextAvailable.toISOString()
+            });
+        }
+
+        // 解除実行
+        await db.query(`
+            UPDATE subscriptions 
+            SET is_active = FALSE, migration_count = migration_count + 1, last_migration_at = NOW(), updated_at = NOW() 
+            WHERE id = $1
+        `, [sub.id]);
+
+        // 操作ログ
+        await db.query('INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details) VALUES ($1, $2, $3, $4, $5, $6)',
+            [userId, username, guildId, sub.cached_servername || guildId, 'USER_MOVE_INIT', `User deactivated license for migration`]);
+
+        res.json({ success: true, message: 'サーバーの紐付けを解除しました。新しいサーバーで /activate を実行してください。' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // POST /api/portal/lookup (Public Token Lookup)
 router.post('/lookup', lookupLimiter, async (req, res) => {
     const { orderNumber, buyerName } = req.body;
@@ -117,7 +157,7 @@ router.post('/lookup', lookupLimiter, async (req, res) => {
             return res.status(403).json({ error: '購入者名が一致しません。' });
         }
 
-        // 時間ベースの照合 (お嬢様発案のランダム認証)
+        // 時間ベースの照合 (ランダム認証)
         const { verifyField, verifyValue } = req.body;
         if (verifyField && verifyValue) {
             const orderTime = new Date(order.mail_received_at);

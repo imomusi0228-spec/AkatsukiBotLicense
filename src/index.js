@@ -17,17 +17,12 @@ async function bootstrap() {
         await client.login(DISCORD_TOKEN);
         logger.info('[Bot] Discord Bot status: ONLINE');
 
-        // 2. 新規APIサーバーの起動 (ポート: API_PORT)
-        await startApiServer();
-        logger.info('[API] Core API Server status: ONLINE');
+        // 2. 統合API/UIサーバーの起動 (ポート: API_PORT)
+        await startApiServer(client);
+        logger.info('[Server] Unified API/UI Server status: ONLINE');
 
-        // 3. 旧ダッシュボードUIサーバーの起動 (ポート: PORT)
-        const { startServer } = require('../server');
-        startServer(client);
-        logger.info('[UI] Dashboard Server status: ONLINE');
-
-        // 4. メール監視の開始
-        startMailPolling();
+        // 3. メール監視の開始
+        startMailPolling(client);
         logger.info('[Mail] Mail Polling status: ACTIVE');
 
         logger.info('=== Akatsuki License System Bootstrap Complete ===');

@@ -624,16 +624,45 @@
                         </div>
                     </div>
 
-                    <!-- Retention Rate Card (Clickable) -->
+                    <!-- Retention & Churn Card -->
                     <div class="col-md-4">
                         <div class="panel h-100 text-center d-flex flex-column justify-content-center cursor-pointer hover-bright glass-panel"
                             @click="showOverallPie" style="cursor: pointer;">
-                            <h5 class="mb-2">継続率 (Retention) <i class="bi bi-info-circle small text-muted"></i></h5>
-                            <div class="stat-value text-accent glow-text" style="font-size: 3.5rem;">{{
-                                detailedStats.retention_rate }}%</div>
+                            <h5 class="mb-2">解約率 (Churn Rate) <i class="bi bi-info-circle small text-muted"></i></h5>
+                            <div class="stat-value text-danger glow-text" style="font-size: 3.5rem;">{{
+                                detailedStats.churn_rate }}%</div>
                             <div class="text-muted small">
-                                有料プラン（Pro/Pro+）を対象とした割合<br>
-                                <span class="badge border border-muted mt-2">クリックで全分布を表示</span>
+                                過去30日間の失効ユーザー割合<br>
+                                <span class="badge border border-muted mt-2">継続率: {{ 100 - detailedStats.churn_rate }}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Revenue Forecast Card -->
+                    <div class="col-md-4">
+                        <div class="panel h-100 text-center d-flex flex-column justify-content-center glass-panel">
+                            <h5 class="mb-2 text-success">月間推定収益 (MRR)</h5>
+                            <div class="stat-value text-success glow-text" style="font-size: 3.5rem;">
+                                <small style="font-size: 1.5rem;">¥</small>{{ detailedStats.mrr_estimate.toLocaleString() }}
+                            </div>
+                            <div class="text-muted small">
+                                現在の有効な本契約プランの合計額<br>
+                                <span class="badge border border-success text-success mt-2">Forecast</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Growth Rate Card -->
+                    <div class="col-md-4">
+                        <div class="panel h-100 text-center d-flex flex-column justify-content-center glass-panel">
+                            <h5 class="mb-2 text-info">成長率 (Growth Rate)</h5>
+                            <div class="stat-value text-info glow-text" style="font-size: 3.5rem;">
+                                <i :class="detailedStats.growth_rate >= 0 ? 'bi bi-graph-up-arrow' : 'bi bi-graph-down-arrow'" class="me-1"></i>
+                                {{ detailedStats.growth_rate }}%
+                            </div>
+                            <div class="text-muted small">
+                                過去30日間の新規契約増加率<br>
+                                <span class="badge border border-info text-info mt-2">Monthly</span>
                             </div>
                         </div>
                     </div>
@@ -1209,6 +1238,88 @@
             </div>
 
 
+
+            </div>
+
+            <!-- Tab Content: Audit Logs -->
+            <div v-if="activeTab === 'logs'" class="px-3 animate-fade-in">
+                <div class="panel p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="m-0"><i class="bi bi-journal-text me-2"></i>監査ログ (Audit Logs)</h4>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" v-model="logFilter.action" @change="loadLogs(1)" style="width: 180px;">
+                                <option value="">すべての操作</option>
+                                <option value="ADMIN_APPROVE">承認 (Approve)</option>
+                                <option value="ADMIN_REISSUE">再発行 (Reissue)</option>
+                                <option value="ADMIN_DELETE">削除 (Delete)</option>
+                                <option value="BLACKLIST_ADD">ブラックリスト追加</option>
+                                <option value="USER_ACTIVATE">アクティベート</option>
+                                <option value="AUTO_BLOCK">自動遮断 (Anomaly)</option>
+                            </select>
+                            <div class="input-group input-group-sm" style="width: 250px;">
+                                <input type="text" class="form-control" placeholder="検索 (ID, 名前, IP)" v-model="logFilter.search" @keyup.enter="loadLogs(1)">
+                                <button class="btn btn-outline-secondary" @click="loadLogs(1)">検索</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>日時</th>
+                                    <th>実行者</th>
+                                    <th>接続元IP</th>
+                                    <th>操作種別</th>
+                                    <th>対象</th>
+                                    <th>詳細</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="log in auditLogs" :key="log.id">
+                                    <td class="small font-monospace">{{ new Date(log.created_at).toLocaleString('ja-JP') }}</td>
+                                    <td>
+                                        <div class="fw-bold">{{ log.operator_name || 'System' }}</div>
+                                        <div class="extra-small text-muted">{{ log.operator_id }}</div>
+                                    </td>
+                                    <td><code class="small text-info">{{ log.ip_address || '---' }}</code></td>
+                                    <td>
+                                        <span class="badge" :class="{
+                                            'bg-success': log.action_type.includes('APPROVE') || log.action_type.includes('ACTIVATE'),
+                                            'bg-danger': log.action_type.includes('DELETE') || log.action_type.includes('BLACKLIST') || log.action_type.includes('BLOCK'),
+                                            'bg-info': log.action_type.includes('REISSUE'),
+                                            'bg-secondary': !['APPROVE', 'ACTIVATE', 'DELETE', 'BLACKLIST', 'BLOCK', 'REISSUE'].some(t => log.action_type.includes(t))
+                                        }">{{ log.action_type }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-bold">{{ log.target_name }}</div>
+                                        <div class="extra-small text-muted">{{ log.target_id }}</div>
+                                    </td>
+                                    <td class="small text-white-50">{{ log.details }}</td>
+                                </tr>
+                                <tr v-if="auditLogs.length === 0">
+                                    <td colspan="6" class="text-center py-5 text-muted">該当するログが見つかりませんでした。</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav v-if="logPagination.totalPages > 1" class="mt-4">
+                        <ul class="pagination pagination-sm justify-content-center border-0">
+                            <li class="page-item" :class="{ disabled: logPagination.page === 1 }">
+                                <button class="page-link" @click="loadLogs(logPagination.page - 1)">前へ</button>
+                            </li>
+                            <li class="page-item" v-for="p in logPagination.totalPages" :key="p" :class="{ active: logPagination.page === p }">
+                                <button class="page-link" @click="loadLogs(p)">{{ p }}</button>
+                            </li>
+                            <li class="page-item" :class="{ disabled: logPagination.page === logPagination.totalPages }">
+                                <button class="page-link" @click="loadLogs(logPagination.page + 1)">次へ</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
 
             <!-- Edit Modal -->
             <div class="modal fade" id="editModal" tabindex="-1">

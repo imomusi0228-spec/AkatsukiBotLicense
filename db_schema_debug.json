@@ -1,0 +1,106 @@
+[
+  {
+    "table_name": "licenses",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "licenses",
+    "column_name": "notes"
+  },
+  {
+    "table_name": "licenses",
+    "column_name": "expires_at"
+  },
+  {
+    "table_name": "licenses",
+    "column_name": "tier"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "guild_id"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "user_id"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "tier"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "start_date"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "expiry_date"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "is_active"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "auto_renew"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "notes"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "valid_until"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "updated_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "expiry_warning_sent"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "created_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "cached_username"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "cached_servername"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "current_milestone"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "auto_unlock_enabled"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "migration_count"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "last_migration_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "paused_at"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "paused_tier"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "user_avatar"
+  },
+  {
+    "table_name": "subscriptions",
+    "column_name": "user_handle"
+  }
+]

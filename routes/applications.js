@@ -11,17 +11,36 @@ router.get('/', authMiddleware, async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const offset = (page - 1) * limit;
 
+        const search = req.query.search || '';
+        let params = [limit, offset];
+        let whereClauses = ["(l.notes IS NULL OR (l.notes NOT LIKE '%Generated for App%' AND l.notes NOT LIKE '%App ID:%'))"];
+
+        if (search) {
+            const searchParam = `%${search}%`;
+            params.push(searchParam);
+            whereClauses.push(`(
+                a.author_id ILIKE $3 OR 
+                a.author_name ILIKE $3 OR 
+                a.parsed_booth_name ILIKE $3 OR 
+                a.parsed_user_id ILIKE $3 OR 
+                a.license_key ILIKE $3
+            )`);
+        }
+
+        const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
         // Get total count
-        const countRes = await db.query('SELECT COUNT(*) FROM applications');
+        const countRes = await db.query(`SELECT COUNT(*) FROM applications a LEFT JOIN license_keys l ON a.license_key = l.key_id ${whereSql}`, params.slice(2));
         const totalCount = parseInt(countRes.rows[0].count);
 
         const result = await db.query(`
             SELECT a.*, l.is_used 
             FROM applications a 
             LEFT JOIN license_keys l ON a.license_key = l.key_id 
+            ${whereSql}
             ORDER BY a.created_at DESC
             LIMIT $1 OFFSET $2
-        `, [limit, offset]);
+        `, params);
         const apps = result.rows;
 
         // Fetch names from Discord
@@ -33,8 +52,9 @@ router.get('/', authMiddleware, async (req, res) => {
                 let userAvatar = null;
 
                 try {
-                    // Cache-first lookup
-                    const user = client.users.cache.get(app.author_id) || await client.users.fetch(app.author_id).catch(() => null);
+                    // Cache-first lookup: Use parsed_user_id as the primary target for display
+                    const targetUserId = app.parsed_user_id || app.author_id;
+                    const user = client.users.cache.get(targetUserId) || await client.users.fetch(targetUserId).catch(() => null);
                     if (user) {
                         userName = user.globalName || user.username;
                         userHandle = user.username;
@@ -121,15 +141,15 @@ router.post('/:id/reject', authMiddleware, async (req, res) => {
         const operatorName = req.user?.username || 'Unknown';
         const targetDesc = `${app.author_name} (${app.parsed_booth_name})`;
         await db.query(`
-            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details)
-            VALUES ($1, $2, $3, $4, 'REJECT_APP', 'Rejected application')
-        `, [operatorId, operatorName, id, targetDesc]);
+            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, ip_address)
+            VALUES ($1, $2, $3, $4, 'REJECT_APP', 'Rejected application', $5)
+        `, [operatorId, operatorName, id, targetDesc, req.user.ipAddress]);
 
         // Notify
         const isAdmin = req.user?.role === 'admin';
         const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
         await sendWebhookNotification({
-            title: isAdmin ? '🚫 【不受理】いたしました' : '⚠️ 【非管理者操作】不受理',
+            title: isAdmin ? '🚫 【不受理】完了しました' : '⚠️ 【非管理者操作】不受理',
             description: `**対象者:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[管理画面を見る](${dashboardUrl})`,
             color: isAdmin ? 0xe74c3c : 0xffa500,
             fields: [{ name: '担当者', value: operatorName, inline: true }]
@@ -193,15 +213,15 @@ router.post('/:id/cancel', authMiddleware, async (req, res) => {
         const operatorName = req.user?.username || 'Unknown';
         const targetDesc = `${app.author_name} (${app.parsed_booth_name})`;
         await db.query(`
-            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details)
-            VALUES ($1, $2, $3, $4, 'CANCEL_APP', 'Cancelled approved application')
-        `, [operatorId, operatorName, id, targetDesc]);
+            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, ip_address)
+            VALUES ($1, $2, $3, $4, 'CANCEL_APP', 'Cancelled approved application', $5)
+        `, [operatorId, operatorName, id, targetDesc, req.user.ipAddress]);
 
         // Notify
         const isAdmin = req.user?.role === 'admin';
         const dashboardUrl = `${process.env.PUBLIC_URL || ''}/#apps`;
         await sendWebhookNotification({
-            title: isAdmin ? '✖️ 【取消】いたしました' : '⚠️ 【非管理者操作】取消',
+            title: isAdmin ? '✖️ 【取消】完了しました' : '⚠️ 【非管理者操作】取消',
             description: `**対象者:** ${app.author_name} (\`${app.author_id}\`)\n**Booth:** ${app.parsed_booth_name}\n\n[管理画面を見る](${dashboardUrl})`,
             color: isAdmin ? 0x95a5a6 : 0xffa500,
             fields: [{ name: '担当者', value: operatorName, inline: true }]
@@ -241,9 +261,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 
         const targetDesc = `${app.author_name} (${app.parsed_booth_name})`;
         await db.query(`
-            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details)
-            VALUES ($1, $2, $3, $4, 'DELETE_APP', 'Deleted application record')
-        `, [operatorId, operatorName, id, targetDesc]);
+            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, ip_address)
+            VALUES ($1, $2, $3, $4, 'DELETE_APP', 'Deleted application record', $5)
+        `, [operatorId, operatorName, id, targetDesc, req.user.ipAddress]);
 
         res.json({ success: true });
     } catch (err) {
@@ -305,7 +325,7 @@ router.post('/:id/reissue', authMiddleware, async (req, res) => {
             try {
                 const user = await client.users.fetch(app.author_id);
                 await user.send({
-                    content: `お嬢様、ライセンスキーの再発行を承りましたわ！\n以前のキーは無効化いたしましたので、こちらの新しいキーをご使用くださいまし。\n\n**新しいライセンスキー:** \`${newKey}\`\n\n\` /activate \` コマンドで有効化をお願いします。`
+                    content: `ライセンスキーの再発行を承りました。\n以前のキーは無効化いたしましたので、こちらの新しいキーをご使用ください。\n\n**新しいライセンスキー:** \`${newKey}\`\n\n\` /activate \` コマンドで有効化をお願いします。`
                 });
             } catch (dmErr) {
                 console.warn(`[Reissue] Failed to DM user ${app.author_id}:`, dmErr.message);

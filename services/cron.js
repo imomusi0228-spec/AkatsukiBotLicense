@@ -28,35 +28,49 @@ function startCron(client) {
                     return planRes ? planRes.displayName : t || 'Free';
                 };
 
+                // Find targets for 7-day, 3-day, and 1-day warnings
                 const warningTargetsRes = await db.query(`
-                    SELECT guild_id, user_id, tier, expiry_date, auto_renew 
+                    SELECT guild_id, user_id, tier, expiry_date, auto_renew, last_warning_days 
                     FROM subscriptions 
-                    WHERE is_active = TRUE AND expiry_warning_sent = FALSE AND auto_renew = FALSE
+                    WHERE is_active = TRUE AND auto_renew = FALSE
+                    AND tier NOT IN ('Free', '0', 'ULTIMATE')
+                    AND tier NOT LIKE 'Trial%'
                     AND (
-                        (expiry_date <= NOW() + INTERVAL '7 days' AND tier NOT IN ('Free', '0', 'ULTIMATE') AND tier NOT LIKE 'Trial%')
-                        OR (expiry_date <= NOW() + INTERVAL '1 day' AND tier LIKE 'Trial%')
+                        (expiry_date <= NOW() + INTERVAL '7 days' AND (last_warning_days IS NULL OR last_warning_days > 7))
+                        OR (expiry_date <= NOW() + INTERVAL '3 days' AND (last_warning_days IS NULL OR last_warning_days > 3))
+                        OR (expiry_date <= NOW() + INTERVAL '1 day' AND (last_warning_days IS NULL OR last_warning_days > 1))
                     )
                 `);
 
                 for (const sub of warningTargetsRes.rows) {
                     try {
+                        const daysLeft = Math.ceil((new Date(sub.expiry_date) - new Date()) / (1000 * 60 * 60 * 24));
+                        if (daysLeft < 0) continue; // Already handled by expiry logic
+
                         const user = await client.users.fetch(sub.user_id).catch(() => null);
                         if (user) {
                             const tierName = getTierName(sub.tier);
-                            const isTrial = String(sub.tier).startsWith('Trial');
-                            const description = isTrial
-                                ? `ご利用ありがとうございます。お使いの **${tierName}プラン** の有効期限がまもなく終了します。\n継続してご利用いただくには、BOOTHにて有料版の購入をご検討ください。`
-                                : `ご利用ありがとうございます。お使いの **${tierName}プラン** の有効期限がまもなく終了します。`;
+                            let title = '📅 サブスクリプション期限のお知らせ';
+                            let description = `ご利用ありがとうございます。お使いの **${tierName}プラン** の有効期限がまもなく（あと${daysLeft}日）終了します。`;
+                            let color = 0xffa500; // Orange
+
+                            if (daysLeft <= 1) {
+                                title = '⚠️ 【重要】サブスクリプション期限のお知らせ';
+                                description = `お使いの **${tierName}プラン** の有効期限が**明日**終了します。期限後は1日間の猶予期間を経てFreeプランへ移行されますので、お早めの更新をお勧めします。`;
+                                color = 0xff0000; // Red
+                            } else if (daysLeft <= 3) {
+                                description = `お使いの **${tierName}プラン** の有効期限があと3日となりました。継続してご利用いただく場合は、お早めにBOOTHにてお手続きください。`;
+                            }
 
                             const embed = new EmbedBuilder()
-                                .setTitle('📅 サブスクリプション期限のお知らせ')
+                                .setTitle(title)
                                 .setDescription(description)
                                 .addFields(
                                     { name: 'サーバーID', value: sub.guild_id },
                                     { name: '期限', value: new Date(sub.expiry_date).toLocaleDateString() },
-                                    { name: '自動更新', value: sub.auto_renew ? '有効 (自動的に更新されます)' : '無効 (期限後はFreeプランへ移行します)' }
+                                    { name: '自動更新', value: sub.auto_renew ? '有効 (自動的に更新されます)' : '無効 (期限後は猶予期間を経てFreeプランへ移行します)' }
                                 )
-                                .setColor(sub.auto_renew ? 0x00ff00 : 0xffa500)
+                                .setColor(color)
                                 .setTimestamp();
 
                             const row = new ActionRowBuilder().addComponents(
@@ -64,14 +78,20 @@ function startCron(client) {
                             );
 
                             await user.send({ embeds: [embed], components: [row] }).catch(() => null);
-                            await db.query('UPDATE subscriptions SET expiry_warning_sent = TRUE WHERE guild_id = $1', [sub.guild_id]);
+                            await db.query('UPDATE subscriptions SET expiry_warning_sent = TRUE, last_warning_days = $1 WHERE guild_id = $2', [daysLeft, sub.guild_id]);
                         }
                     } catch (err) { console.error(`[Cron] Expiry Warning Error (${sub.guild_id}):`, err.message); }
                 }
             }
 
             // Process Expired Subscriptions (User-Based Sync)
-            const expiredRes = await db.query("SELECT DISTINCT user_id, tier, auto_renew FROM subscriptions WHERE is_active = TRUE AND expiry_date <= NOW() AND expiry_date IS NOT NULL");
+            // Truly Expired = expiry_date + 3 days in the past
+            const expiredRes = await db.query(`
+                SELECT DISTINCT user_id, tier, auto_renew FROM subscriptions 
+                WHERE is_active = TRUE 
+                AND expiry_date + INTERVAL '1 day' <= NOW() 
+                AND expiry_date IS NOT NULL
+            `);
             for (const sub of expiredRes.rows) {
                 const userId = sub.user_id;
 
@@ -150,39 +170,158 @@ function startCron(client) {
         } catch (err) { console.error('[Cron] Monthly Report Error:', err); }
     });
 
-    // 5. Daily Statistics Snapshot: 00:00
-    cron.schedule('0 0 * * *', async () => {
-        console.log('[Cron] Capturing daily statistics snapshot...');
-        try {
-            const activeRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE");
-            const newRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE created_at >= NOW() - INTERVAL '1 day'");
-            const renewRes = await db.query("SELECT COUNT(*) FROM operation_logs WHERE action_type = 'extend' AND created_at >= NOW() - INTERVAL '1 day'");
-            
-            // Simple revenue estimation logic
-            const revenueRes = await db.query(`
-                SELECT SUM(
-                    CASE 
-                        WHEN tier IN ('Pro', 'PRO', 'TRIAL_PRO') THEN 500
-                        WHEN tier IN ('Pro+', 'PRO_PLUS', 'TRIAL_PRO_PLUS') THEN 1000
-                        WHEN tier = 'PRO_YEARLY' THEN 5500
-                        WHEN tier = 'PRO_PLUS_YEARLY' THEN 10000
-                        WHEN tier = 'ULTIMATE' THEN 15000
-                        ELSE 0
-                    END
-                ) as total FROM subscriptions WHERE created_at >= NOW() - INTERVAL '1 day'
-            `);
 
-            await db.query(`
-                INSERT INTO stats_history (active_count, new_count, renew_count, total_revenue_est)
-                VALUES ($1, $2, $3, $4)
-            `, [
-                activeRes.rows[0].count || 0,
-                newRes.rows[0].count || 0,
-                renewRes.rows[0].count || 0,
-                revenueRes.rows[0].total || 0
-            ]);
-            console.log('[Cron] Statistics snapshot saved.');
-        } catch (err) { console.error('[Cron] Stats Snapshot Error:', err); }
+
+    // 6. Automated Daily Backup: 03:00
+    cron.schedule('0 3 * * *', async () => {
+        console.log('[Cron] Running scheduled daily backup...');
+        try {
+            const { performBackup, cleanupOldBackups } = require('./backupService');
+            await performBackup();
+            const removed = await cleanupOldBackups(30);
+            console.log(`[Cron] Backup completed. Removals: ${removed}`);
+        } catch (err) { console.error('[Cron] Auto-backup Error:', err); }
+    });
+
+    // 7. Hourly Anomaly Detection & Auto-Lock: Hourly (0 * * * *)
+    cron.schedule('0 * * * *', async () => {
+        console.log('[Cron] Running anomaly detection check...');
+        try {
+            const THRESHOLD = 10; // 個別ベース(User/IP)での制限件数
+            const query = `
+                SELECT operator_id, operator_name, ip_address, COUNT(*) as activation_count
+                FROM operation_logs
+                WHERE action_type = 'activate' AND created_at >= NOW() - INTERVAL '1 hour'
+                GROUP BY operator_id, operator_name, ip_address
+                HAVING COUNT(*) >= $1
+            `;
+            const result = await db.query(query, [THRESHOLD]);
+
+            if (result.rows.length > 0) {
+                const culprits = result.rows;
+                console.warn(`[Cron] ANOMALY DETECTED: ${culprits.length} group(s) exceeded threshold! Locking system.`);
+                
+                // 1. Activate Kill Switch (Maintenance Mode)
+                await db.query(`
+                    INSERT INTO bot_system_settings (key, value) VALUES ('maintenance_mode', 'true'), ('last_anomaly_at', CURRENT_TIMESTAMP::text)
+                    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+                `);
+                
+                // 1.2 Log maintenance start for violation counting
+                await db.query(
+                    "INSERT INTO operation_logs (action_type, operator_id, operator_name, target_id, details) VALUES ($1, $2, $3, $4, $5)",
+                    ['MAINTENANCE_START', 'SYSTEM', 'Bot System', 'SYSTEM', '異常検知による自動メンテナンス開始']
+                );
+
+                // 1.5 SMART AUTO-BLOCK: Automatically blacklist culprits
+                for (const culprit of culprits) {
+                    const reason = `[AUTO-BLOCK] 異常なアクティベート回数検知 (${culprit.activation_count}件/時)`;
+                    
+                    // Blacklist by User ID (if available)
+                    if (culprit.operator_id && culprit.operator_id !== 'Unknown') {
+                        await db.query(
+                            'INSERT INTO blacklist (target_id, type, reason, operator_id) VALUES ($1, $2, $3, $4) ON CONFLICT (target_id) DO UPDATE SET reason = EXCLUDED.reason',
+                            [culprit.operator_id, 'user', reason, 'SYSTEM']
+                        );
+                    }
+                    
+                    // Blacklist by IP Address (if available)
+                    if (culprit.ip_address && culprit.ip_address !== 'Unknown') {
+                        await db.query(
+                            'INSERT INTO blacklist (target_id, type, reason, operator_id) VALUES ($1, $2, $3, $4) ON CONFLICT (target_id) DO UPDATE SET reason = EXCLUDED.reason',
+                            [culprit.ip_address, 'ip', reason, 'SYSTEM']
+                        );
+                    }
+                }
+
+                // 2. Notify Admins
+                const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(id => id);
+                
+                const culpritDetails = culprits.map(c => 
+                    `- **User:** ${c.operator_name || 'Unknown'} (\`${c.operator_id || 'N/A'}\`)\n  **IP:** \`${c.ip_address || 'Unknown'}\`\n  **Count:** ${c.activation_count}件`
+                ).join('\n\n');
+
+                const alertEmbed = new EmbedBuilder()
+                    .setTitle('🚨 【緊急】システム自動ロック (個別検知)')
+                    .setDescription(`短時間に同一ユーザー/IPから過剰なアクティベートが検知されたため、システムを自動ロックしました。`)
+                    .addFields(
+                        { name: '検知対象', value: culpritDetails.length > 1024 ? culpritDetails.substring(0, 1021) + '...' : culpritDetails },
+                        { name: '判定しきい値', value: `${THRESHOLD} 件 / 1時間`, inline: true }
+                    )
+                    .setColor(0xff0000)
+                    .setTimestamp();
+
+                for (const adminId of adminIds) {
+                    const adminUser = await client.users.fetch(adminId).catch(() => null);
+                    if (adminUser) await adminUser.send({ embeds: [alertEmbed] }).catch(() => null);
+                }
+
+                // 3. Post Public Announcement (if configured)
+                const announceChannelId = process.env.ANNOUNCEMENT_CHANNEL_ID;
+                if (announceChannelId) {
+                    const channel = await client.channels.fetch(announceChannelId).catch(() => null);
+                    if (channel) {
+                        const announceEmbed = new EmbedBuilder()
+                            .setTitle('🚧 緊急メンテナンスのお知らせ')
+                            .setDescription('システムで異常なアクティビティが検知されたため、現在緊急メンテナンスを実施しております。\n復旧までしばらくお待ちくださいますようお願い申し上げます。')
+                            .setColor(0xffff00) // Yellow
+                            .setTimestamp();
+                        await channel.send({ embeds: [announceEmbed] }).catch(err => console.error('[Cron] Failed to send public announcement:', err.message));
+                    }
+                }
+            }
+        } catch (err) { console.error('[Cron] Anomaly Detection Error:', err); }
+    });
+
+    // 8. Auto-Recovery Check: Every 10 minutes (*/10 * * * *)
+    cron.schedule('*/10 * * * *', async () => {
+        try {
+            const maintRes = await db.query("SELECT value FROM bot_system_settings WHERE key = 'maintenance_mode'");
+            const isMaint = maintRes.rows.length > 0 ? maintRes.rows[0].value === 'true' : false;
+
+            if (isMaint) {
+                const anomalyRes = await db.query("SELECT value FROM bot_system_settings WHERE key = 'last_anomaly_at'");
+                if (anomalyRes.rows.length > 0 && anomalyRes.rows[0].value) {
+                    const lastAnomaly = new Date(anomalyRes.rows[0].value);
+                    const now = new Date();
+                    const recoveryThreshold = 60 * 60 * 1000; // 1 hour
+
+                    if (now - lastAnomaly >= recoveryThreshold) {
+                        console.log('[Cron] Auto-recovery triggered: 1 hour passed since last anomaly.');
+
+                        // 1. Deactivate Maintenance Mode
+                        await db.query("UPDATE bot_system_settings SET value = 'false' WHERE key = 'maintenance_mode'");
+                        
+                        // 2. Post Recovery Announcement
+                        const announceChannelId = process.env.ANNOUNCEMENT_CHANNEL_ID;
+                        if (announceChannelId) {
+                            const channel = await client.channels.fetch(announceChannelId).catch(() => null);
+                            if (channel) {
+                                const recoveryEmbed = new EmbedBuilder()
+                                    .setTitle('✅ メンテナンス終了のお知らせ')
+                                    .setDescription('システムの安全が確認されたため、緊急メンテナンスを終了し、通常稼働を再開いたしました。\nご不便をおかけいたしました。')
+                                    .setColor(0x00ff00) // Green
+                                    .setTimestamp();
+                                await channel.send({ embeds: [recoveryEmbed] }).catch(() => null);
+                            }
+                        }
+
+                        // 3. Notify Admins about the recovery
+                        const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(id => id);
+                        const recoveryInfoEmbed = new EmbedBuilder()
+                            .setTitle('🛡️ システム自動復旧完了')
+                            .setDescription('1時間以上異常や違反が検知されなかったため、メンテナンスモードを自動的に解除しました。')
+                            .setColor(0x00ff00)
+                            .setTimestamp();
+                        
+                        for (const adminId of adminIds) {
+                            const adminUser = await client.users.fetch(adminId).catch(() => null);
+                            if (adminUser) await adminUser.send({ embeds: [recoveryInfoEmbed] }).catch(() => null);
+                        }
+                    }
+                }
+            }
+        } catch (err) { console.error('[Cron] Auto-recovery Check Error:', err); }
     });
 }
 

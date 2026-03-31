@@ -266,6 +266,31 @@ router.get('/stats/detailed', authMiddleware, async (req, res) => {
         `);
         stats.top_commands = commandRes.rows;
 
+        // --- Advanced Metrics ---
+        // 1. Revenue Forecast (MRR Estimate)
+        const revenueRes = await db.query(`
+            SELECT SUM(
+                CASE 
+                    WHEN tier IN ('Pro', 'PRO', '1') THEN 500
+                    WHEN tier IN ('Pro+', 'PRO_PLUS', '3') THEN 1000
+                    ELSE 0
+                END
+            ) as mrr FROM subscriptions WHERE is_active = TRUE
+        `);
+        stats.mrr_estimate = parseInt(revenueRes.rows[0].mrr || 0);
+
+        // 2. Churn Rate (approximation)
+        const expired30dRes = await db.query("SELECT COUNT(DISTINCT user_id) FROM subscriptions WHERE expiry_date BETWEEN NOW() - INTERVAL '30 days' AND NOW() AND tier != 'Free'");
+        const expiredCount = parseInt(expired30dRes.rows[0].count || 0);
+        stats.churn_rate = stats.total_active > 0 ? Math.round((expiredCount / (stats.total_active + expiredCount)) * 100) : 0;
+
+        // 3. Growth Trends
+        const lastMonthRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE created_at BETWEEN NOW() - INTERVAL '60 days' AND NOW() - INTERVAL '30 days'");
+        const thisMonthRes = await db.query("SELECT COUNT(*) FROM subscriptions WHERE created_at >= NOW() - INTERVAL '30 days'");
+        const lastMonthCount = parseInt(lastMonthRes.rows[0].count || 0);
+        const thisMonthCount = parseInt(thisMonthRes.rows[0].count || 0);
+        stats.growth_rate = lastMonthCount > 0 ? Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100) : 0;
+
         res.json(stats);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -388,14 +413,14 @@ router.post('/', authMiddleware, async (req, res) => {
         const operatorId = req.user?.userId || 'Unknown';
         const operatorName = req.user?.username || 'Unknown';
         await db.query(`
-            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, metadata)
-            VALUES ($1, $2, $3, $4, 'CREATE', $5, $6)
-        `, [operatorId, operatorName, guild_id, serverName, `Created ${tier} for ${duration || 'unspecified'}`, JSON.stringify({ tier, duration, expiryDate })]);
+            INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, metadata, ip_address)
+            VALUES ($1, $2, $3, $4, 'CREATE', $5, $6, $7)
+        `, [operatorId, operatorName, guild_id, serverName, `Created ${tier} for ${duration || 'unspecified'}`, JSON.stringify({ tier, duration, expiryDate }), req.user.ipAddress]);
 
         // Notify
         await sendWebhookNotification({
-            title: 'License Created/Updated',
-            description: `**Server:** ${serverName} (\`${guild_id}\`)\n**Tier:** ${tier}\n**Duration:** ${duration || 'unspecified'}`,
+            title: '【ライセンス】作成/更新',
+            description: `**サーバー:** ${serverName} (\`${guild_id}\`)\n**ティア:** ${tier}\n**期間:** ${duration || 'unspecified'}`,
             color: 0x3498db,
             fields: [
                 { name: 'User ID', value: user_id, inline: true },
@@ -567,13 +592,13 @@ router.delete('/:id', authMiddleware, async (req, res) => {
         // Log
         const operatorId = req.user?.userId || 'Unknown';
         const operatorName = req.user?.username || 'Unknown';
-        await db.query(`INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details) VALUES ($1, $2, $3, $4, 'DEACTIVATE', 'Soft Delete')`,
-            [operatorId, operatorName, id, serverName]);
+        await db.query(`INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, ip_address) VALUES ($1, $2, $3, $4, 'DEACTIVATE', 'Soft Delete', $5)`,
+            [operatorId, operatorName, id, serverName, req.user.ipAddress]);
 
         // Notify
         await sendWebhookNotification({
-            title: 'License Deactivated',
-            description: `**Server:** ${serverName} (\`${id}\`)\n*License suspended via soft delete.*`,
+            title: '【ライセンス】一時停止済み',
+            description: `**サーバー:** ${serverName} (\`${id}\`)\n*ソフトデリートによりライセンスが停止されました。*`,
             color: 0xe74c3c,
             fields: [{ name: 'Operator', value: operatorName, inline: true }]
         });
@@ -596,13 +621,13 @@ router.delete('/:id/delete', authMiddleware, async (req, res) => {
         // Log
         const operatorId = req.user?.userId || 'Unknown';
         const operatorName = req.user?.username || 'Unknown';
-        await db.query(`INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details) VALUES ($1, $2, $3, $4, 'DELETE', 'Hard Delete')`,
-            [operatorId, operatorName, id, serverName]);
+        await db.query(`INSERT INTO operation_logs (operator_id, operator_name, target_id, target_name, action_type, details, ip_address) VALUES ($1, $2, $3, $4, 'DELETE', 'Hard Delete', $5)`,
+            [operatorId, operatorName, id, serverName, req.user.ipAddress]);
 
         // Notify
         await sendWebhookNotification({
-            title: 'License Permanently Deleted',
-            description: `**Server:** ${serverName} (\`${id}\`)\n*Data removed from database.*`,
+            title: '【ライセンス】完全削除済み',
+            description: `**サーバー:** ${serverName} (\`${id}\`)\n*データベースからデータが完全に削除されました。*`,
             color: 0x2c3e50,
             fields: [{ name: 'Operator', value: operatorName, inline: true }]
         });

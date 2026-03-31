@@ -127,8 +127,10 @@ async function syncSubscriptions(client, targetUserId = null) {
                         const now = new Date();
                         
                         // Check if the subscription is truly eligible for activation/sync
-                        // ULTIMATE is always valid. For others, must not be in the past.
-                        const isExpired = currentTier !== 'ULTIMATE' && expiryDate && expiryDate < now;
+                        // ULTIMATE is always valid. For others, allow 1-day grace period.
+                        const GRACE_PERIOD_DAYS = 1;
+                        const effectiveExpiry = expiryDate ? new Date(new Date(expiryDate).getTime() + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000) : null;
+                        const isExpired = currentTier !== 'ULTIMATE' && effectiveExpiry && effectiveExpiry < now;
 
                         const isUltimateMatch = TIER_GROUPS.ULTIMATE.includes(tier) && TIER_GROUPS.ULTIMATE.includes(currentTier);
                         const isProPlusMatch = TIER_GROUPS.PRO_PLUS.includes(tier) && TIER_GROUPS.PRO_PLUS.includes(currentTier);

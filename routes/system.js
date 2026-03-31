@@ -62,44 +62,9 @@ router.post('/backup', authMiddleware, async (req, res) => {
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
 
     try {
-        const { exec } = require('child_process');
-        const path = require('path');
-        const fs = require('fs');
-
-        const backupDir = path.join(__dirname, '../backups');
-        if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
-
-        const fileName = `db_backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sql`;
-        const filePath = path.join(backupDir, fileName);
-
-        // Note: This expects pg_dump to be in PATH or connection string in environment
-        // For simplicity and since we are on Windows, we might fallback to JSON dump if pg_dump fails
-        const dbUrl = process.env.DATABASE_URL;
-        
-        // Try pg_dump first (if it exists)
-        exec(`pg_dump "${dbUrl}" > "${filePath}"`, async (error, stdout, stderr) => {
-            if (error) {
-                console.error('[Backup] pg_dump failed, falling back to JSON dump:', error.message);
-                
-                // Fallback: JSON Dump (same as previous implementation)
-                try {
-                    const tables = ['subscriptions', 'applications', 'blacklist', 'scheduled_announcements', 'operation_logs'];
-                    const backup = {};
-                    for (const table of tables) {
-                        const result = await db.query(`SELECT * FROM ${table}`);
-                        backup[table] = result.rows;
-                    }
-                    const jsonFileName = fileName.replace('.sql', '.json');
-                    const jsonFilePath = filePath.replace('.sql', '.json');
-                    fs.writeFileSync(jsonFilePath, JSON.stringify(backup, null, 2));
-                    return res.json({ success: true, fileName: jsonFileName, type: 'json_fallback', message: 'Backup created (JSON fallback)' });
-                } catch (fallbackErr) {
-                    return res.status(500).json({ error: 'Manual backup failed: ' + fallbackErr.message });
-                }
-            }
-            
-            res.json({ success: true, fileName, type: 'sql', message: 'Backup created successfully (SQL)' });
-        });
+        const { performBackup } = require('../services/backupService');
+        const result = await performBackup();
+        res.json(result);
     } catch (err) {
         console.error('[Backup] Fatal error:', err);
         res.status(500).json({ error: err.message });
